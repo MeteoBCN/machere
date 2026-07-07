@@ -1,0 +1,83 @@
+{
+  "id": "/Barcelona/index.html",
+  "name": "Ma Chère — Tu estética integral",
+  "short_name": "Ma Chère",
+  "description": "Centro de estética integral en el corazón de Les Corts, Barcelona. Reserva tu cita online.",
+  "start_url": "/Barcelona/index.html",
+  "scope": "/Barcelona/",
+  "display": "standalone",
+  "background_color": "#FAF6F0",
+  "theme_color": "#1A1714",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/Barcelona/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Barcelona/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/Barcelona/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Barcelona/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/Barcelona/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "label": "Ma Chère — Vista móvil"
+    },
+    {
+      "src": "/Barcelona/screenshot-desktop.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Ma Chère — Vista escritorio"
+    }
+  ],
+  "categories": ["beauty", "lifestyle", "health"],
+  "shortcuts": [
+    {
+      "name": "Reservar cita",
+      "short_name": "Reservar",
+      "description": "Solicita tu cita directamente",
+      "url": "/Barcelona/index.html",
+      "icons": [
+        {
+          "src": "/Barcelona/shortcut-reservar.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Servicios",
+      "short_name": "Servicios",
+      "description": "Ver todos los tratamientos",
+      "url": "/Barcelona/index.html#servicios",
+      "icons": [
+        {
+          "src": "/Barcelona/shortcut-servicios.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
