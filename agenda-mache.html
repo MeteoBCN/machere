@@ -412,7 +412,12 @@ let agendaDate = new Date();
 const DOW = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 const CATEGORIES = ['Peluquería','Barbería','Tratamientos faciales','Tratamientos corporales','Masajes','Manicura','Pedicura','Pestañas','Micropigmentación','Depilación láser','Depilación cera','Depilación hilo'];
 let categoryFilter = 'todas';
-function fmtDate(d){ return d.toISOString().slice(0,10); }
+function fmtDate(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 function fmtDateLabel(d){ return d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}); }
 
 /* ============ INIT (Firestore en tiempo real) ============ */
