@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ma Chère — Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Open+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#FAF6F0;
+  --ivory:#F2EBE0;
+  --gold:#C9A96E;
+  --gold2:#A07840;
+  --dark:#1A1714;
+  --charcoal:#2D2926;
+  --muted:#8a7550;
+  --border:rgba(201,169,110,0.3);
+  --ok:#5c7a5c;
+  --warn:#b8543e;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Open Sans',sans-serif;background:var(--cream);color:var(--dark);min-height:100vh}
+h1,h2,h3,h4{font-family:'Playfair Display',serif;font-weight:400}
+em{font-style:italic;color:var(--gold2)}
+button{font-family:'Open Sans',sans-serif;cursor:pointer;border:none;background:none}
+input,select,textarea{font-family:'Open Sans',sans-serif;font-size:14px;background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--dark);width:100%;outline:none;transition:border-color .25s}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;display:block;margin-bottom:6px}
+.field{margin-bottom:16px}
+
+/* BACK BAR */
+.back-bar{display:flex;align-items:center;gap:8px;padding:12px 28px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--ivory);border-bottom:1px solid var(--border);text-decoration:none;transition:color .2s}
+.back-bar:hover{color:var(--gold2)}
+.back-bar .arrow{font-size:15px;line-height:1}
+
+/* NAV */
+.topbar{position:sticky;top:0;z-index:50;background:var(--cream);border-bottom:1px solid var(--border);padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.logo{font-size:19px;letter-spacing:.14em;color:var(--dark)}
+.tabs{display:flex;gap:6px;background:var(--ivory);border-radius:24px;padding:4px}
+.tab-btn{font-size:10px;letter-spacing:.16em;text-transform:uppercase;padding:10px 20px;border-radius:20px;color:var(--muted);font-weight:600;transition:all .25s}
+.tab-btn.active{background:var(--gold);color:var(--cream)}
+
+main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
+.view{display:none}
+.view.active{display:block}
+.hidden{display:none !important}
+
+.page-head{margin-bottom:36px;text-align:center}
+.page-head h1{font-size:clamp(28px,4vw,42px);margin-bottom:8px}
+.page-head p{color:var(--muted);font-style:italic;font-size:14px}
+
+/* STEPS */
+.steps{display:flex;justify-content:center;gap:28px;margin-bottom:40px}
+.step-dot{display:flex;align-items:center;gap:10px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--border);font-weight:600}
+.step-dot .n{width:24px;height:24px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-style:italic;font-size:13px}
+.step-dot.active{color:var(--dark)}
+.step-dot.active .n{background:var(--gold);border-color:var(--gold);color:var(--cream)}
+.step-dot.done .n{background:var(--charcoal);border-color:var(--charcoal);color:var(--cream)}
+
+/* CATEGORY FILTER */
+.cat-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;justify-content:center}
+.cat-chip{font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 16px;border-radius:18px;border:1px solid var(--border);color:var(--muted);font-weight:600;background:var(--ivory);transition:all .2s}
+.cat-chip:hover{border-color:var(--gold)}
+.cat-chip.sel{background:var(--gold);border-color:var(--gold);color:var(--cream)}
+.cat-group{margin-bottom:32px}
+.cat-group h3{font-size:15px;letter-spacing:.06em;color:var(--gold2);margin-bottom:12px;text-transform:uppercase;font-weight:600;font-family:'Open Sans',sans-serif}
+.svc-card .cat-tag{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold2);font-weight:700;margin-bottom:4px}
+
+/* SERVICE CARDS */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.svc-card{background:var(--ivory);border:1px solid var(--border);border-radius:14px;padding:22px;text-align:left;transition:all .25s;position:relative}
+.svc-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.svc-card.sel{border-color:var(--gold);background:#efe0bf;box-shadow:0 0 0 1px var(--gold)}
+.svc-card h4{font-size:18px;margin-bottom:6px}
+.svc-card .dur{font-size:11px;color:var(--muted);margin-bottom:10px}
+.svc-card .price{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold2)}
+
+.empty{text-align:center;padding:60px 20px;color:var(--muted);font-style:italic}
+.empty .big{font-size:15px;margin-bottom:6px;color:var(--dark);font-style:normal;font-weight:600}
+
+/* DATE STRIP */
+.date-strip{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 16px}
+.date-chip{flex-shrink:0;width:64px;padding:12px 4px;border:1px solid var(--border);border-radius:12px;text-align:center;background:var(--ivory);transition:all .2s}
+.date-chip .dow{font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.08em}
+.date-chip .num{font-family:'Playfair Display',serif;font-size:20px;margin:2px 0}
+.date-chip.sel{background:var(--gold);border-color:var(--gold)}
+.date-chip.sel .dow,.date-chip.sel .num{color:var(--cream)}
+.date-chip.closed{opacity:.35;pointer-events:none}
+
+/* TIME SLOTS */
+.slot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px}
+.slot-btn{padding:11px 4px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--cream);transition:all .2s}
+.slot-btn:hover{border-color:var(--gold)}
+.slot-btn.sel{background:var(--gold);color:var(--cream);border-color:var(--gold)}
+.slot-btn:disabled{opacity:.3;pointer-events:none;text-decoration:line-through}
+
+/* BUTTONS */
+.btn{font-size:10px;letter-spacing:.18em;text-transform:uppercase;padding:14px 34px;border-radius:22px;font-weight:600;transition:all .3s;display:inline-block}
+.btn-gold{background:var(--gold);color:var(--cream)}
+.btn-gold:hover{background:var(--gold2)}
+.btn-gold:disabled{opacity:.4;pointer-events:none}
+.btn-dark{background:var(--dark);color:var(--ivory)}
+.btn-dark:hover{background:var(--charcoal)}
+.btn-ghost{border:1px solid var(--border);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold2)}
+.btn-sm{padding:9px 18px;font-size:9px}
+.btn-danger{color:var(--warn)}
+.row-btns{display:flex;gap:12px;justify-content:center;margin-top:32px;flex-wrap:wrap}
+
+.card{background:var(--ivory);border:1px solid var(--border);border-radius:14px;padding:26px}
+
+/* PANEL */
+.panel-nav{display:flex;gap:8px;margin-bottom:28px;border-bottom:1px solid var(--border);padding-bottom:0}
+.panel-nav button{font-size:10px;letter-spacing:.16em;text-transform:uppercase;padding:12px 4px;margin-right:24px;color:var(--muted);font-weight:600;border-bottom:2px solid transparent}
+.panel-nav button.active{color:var(--dark);border-color:var(--gold)}
+
+.pin-box{max-width:320px;margin:80px auto;text-align:center}
+.pin-box h2{margin-bottom:20px}
+
+/* AGENDA LIST */
+.agenda-day-head{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.booking-item{display:flex;gap:16px;align-items:center;padding:16px 18px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;background:var(--ivory)}
+.booking-item .time{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold2);width:64px;flex-shrink:0}
+.booking-item .info{flex:1;min-width:0}
+.booking-item .info b{display:block;font-size:14px}
+.booking-item .info span{font-size:12px;color:var(--muted)}
+.status-badge{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;border-radius:10px;font-weight:700}
+.status-confirmada{background:#dde8dd;color:var(--ok)}
+.status-completada{background:#e4e4e4;color:#666}
+.status-cancelada{background:#f2d9d3;color:var(--warn)}
+.booking-actions{display:flex;gap:8px}
+.icon-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s}
+.icon-btn:hover{border-color:var(--gold);background:var(--gold);color:var(--cream)}
+
+/* CLIENTS */
+.client-list{display:flex;flex-direction:column;gap:8px}
+.client-row{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border:1px solid var(--border);border-radius:12px;background:var(--ivory);transition:all .2s}
+.client-row:hover{border-color:var(--gold)}
+.client-row b{font-size:14px}
+.client-row span{font-size:12px;color:var(--muted)}
+.client-detail{margin-top:10px}
+.hist-item{display:flex;justify-content:space-between;font-size:13px;padding:9px 0;border-bottom:1px solid var(--border)}
+.hist-item:last-child{border-bottom:none}
+
+/* SERVICES ADMIN */
+.svc-row{display:grid;grid-template-columns:1.8fr 1.6fr 1fr 1fr auto;gap:12px;align-items:center;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:var(--ivory);margin-bottom:8px}
+.svc-row input,.svc-row select{padding:8px 10px}
+.add-svc-card{border:1px dashed var(--border);border-radius:12px;padding:20px;margin-top:20px}
+.grid3{display:grid;grid-template-columns:1.6fr 1.4fr 1fr 1fr;gap:12px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.settings-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
+.settings-row .field{flex:1;min-width:120px}
+.day-toggle{display:flex;gap:6px;flex-wrap:wrap}
+.day-toggle button{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);font-size:11px;font-weight:600}
+.day-toggle button.on{background:var(--gold);color:var(--cream);border-color:var(--gold)}
+
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:var(--ivory);padding:14px 26px;border-radius:24px;font-size:13px;opacity:0;transition:all .35s;pointer-events:none;z-index:999}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.confirm-box{text-align:center;padding:40px 20px}
+.confirm-box .mark{width:56px;height:56px;border-radius:50%;background:var(--gold);color:var(--cream);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 22px}
+
+/* MULTI-SERVICE SELECTION */
+.svc-card .check{position:absolute;top:14px;right:14px;width:20px;height:20px;border-radius:50%;border:1px solid var(--border);background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent}
+.svc-card.sel .check{background:var(--gold);border-color:var(--gold);color:var(--cream)}
+.selection-bar{position:sticky;bottom:0;background:var(--cream);border-top:1px solid var(--border);padding:14px 0;margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.selection-bar .sum{font-size:13px;color:var(--muted)}
+.selection-bar .sum b{color:var(--dark);font-family:'Playfair Display',serif;font-size:16px}
+
+/* EMPLOYEE CHIPS */
+.emp-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.emp-chip{font-size:11px;letter-spacing:.06em;padding:10px 18px;border-radius:18px;border:1px solid var(--border);color:var(--muted);font-weight:600;background:var(--ivory)}
+.emp-chip.sel{background:var(--gold);border-color:var(--gold);color:var(--cream)}
+
+/* AGENDA 2 EMPLOYEES */
+.agenda-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.agenda-col h4{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold2);margin-bottom:12px;font-family:'Open Sans',sans-serif;font-weight:700;border-bottom:1px solid var(--border);padding-bottom:8px}
+@media(max-width:760px){.agenda-cols{grid-template-columns:1fr}}
+.booking-item{flex-wrap:wrap}
+.booking-item .emp-select{width:auto;font-size:11px;padding:6px 8px;margin-top:6px}
+.svc-tags{font-size:12px;color:var(--muted);display:block;margin-top:2px}
+
+/* MODAL (cobro / añadir servicio) */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,23,20,.55);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.modal-box{background:var(--cream);border-radius:16px;padding:26px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto}
+.modal-box h3{margin-bottom:16px}
+.calc-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.calc-row.total{font-family:'Playfair Display',serif;font-size:19px;color:var(--gold2);border-bottom:none;margin-top:6px;padding-top:14px;border-top:1px solid var(--border)}
+.calc-adjust{display:flex;gap:12px;margin:14px 0}
+.calc-adjust .field{flex:1;margin-bottom:0}
+.pickable-svc{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--ivory);font-size:13px}
+.pickable-svc button{font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:var(--gold);color:var(--cream);padding:7px 12px;border-radius:14px;font-weight:700}
+
+@media(max-width:640px){
+  .two-col{grid-template-columns:1fr}
+  .grid3{grid-template-columns:1fr}
+  .svc-row{grid-template-columns:1fr 1fr}
+  .topbar{padding:14px 16px}
+  main{padding:24px 14px 90px}
+}
+</style>
+</head>
+<body>
+
+<a href="index.html" class="back-bar"><span class="arrow">←</span> Volver a página principal</a>
+
+<div class="topbar">
+  <div class="logo">Ma Ch<em>è</em>re · Panel</div>
+</div>
+
+<main>
+
+  <section class="view active" id="view-panel">
+
+    <div id="panel-gate" class="pin-box">
+      <h2>Acceso al panel</h2>
+      <p style="color:var(--muted);font-style:italic;margin-bottom:20px">Introduce el PIN del centro</p>
+      <div class="field"><input id="pin-input" type="password" inputmode="numeric" placeholder="····" maxlength="6" style="text-align:center;letter-spacing:.3em;font-size:20px" onkeydown="if(event.key==='Enter') checkPin()"></div>
+      <button class="btn btn-gold" style="width:100%" onclick="checkPin()">Entrar</button>
+      <p id="pin-error" style="color:var(--warn);font-size:12px;margin-top:10px;display:none">PIN incorrecto</p>
+    </div>
+
+    <div id="panel-content" class="hidden">
+      <div class="panel-nav">
+        <button class="active" data-p="agenda">Agenda</button>
+        <button data-p="clientes">Clientes</button>
+        <button data-p="servicios">Servicios</button>
+      </div>
+
+      <!-- AGENDA -->
+      <div id="p-agenda" class="p-view">
+        <div class="agenda-day-head">
+          <button class="icon-btn" onclick="shiftAgendaDay(-1)">‹</button>
+          <h3 id="agenda-date-label" style="flex:1"></h3>
+          <button class="icon-btn" onclick="shiftAgendaDay(1)">›</button>
+          <input type="date" id="agenda-date-pick" style="width:auto" onchange="setAgendaDate(this.value)">
+        </div>
+        <div id="agenda-list" class="agenda-cols"></div>
+      </div>
+
+      <!-- CLIENTES -->
+      <div id="p-clientes" class="p-view hidden">
+        <div class="field" style="max-width:340px"><input id="client-search" placeholder="Buscar por nombre o teléfono..." oninput="renderClientList()"></div>
+        <div id="client-list" class="client-list"></div>
+        <div id="client-detail-wrap"></div>
+      </div>
+
+      <!-- SERVICIOS -->
+      <div id="p-servicios" class="p-view hidden">
+        <div class="card" style="margin-bottom:24px">
+          <h3 style="margin-bottom:16px">Empleadas</h3>
+          <div class="settings-row">
+            <div class="field"><label>Empleada 1</label><input id="set-emp-0" placeholder="Ej. Marta"></div>
+            <div class="field"><label>Empleada 2</label><input id="set-emp-1" placeholder="Ej. Laura"></div>
+          </div>
+          <button class="btn btn-dark btn-sm" onclick="saveEmployees()">Guardar empleadas</button>
+        </div>
+
+        <div class="card" style="margin-bottom:24px">
+          <h3 style="margin-bottom:16px">Horario del centro</h3>
+          <div class="settings-row">
+            <div class="field"><label>Apertura</label><input type="time" id="set-open"></div>
+            <div class="field"><label>Cierre</label><input type="time" id="set-close"></div>
+            <div class="field"><label>Duración de turno</label>
+              <select id="set-slot"><option value="15">15 min</option><option value="30">30 min</option><option value="60">60 min</option></select>
+            </div>
+          </div>
+          <div class="field" style="margin-top:14px">
+            <label>Días cerrados</label>
+            <div class="day-toggle" id="closed-days"></div>
+          </div>
+          <button class="btn btn-dark btn-sm" onclick="saveSettings()">Guardar horario</button>
+        </div>
+
+        <h3 style="margin-bottom:14px">Servicios y precios</h3>
+        <div id="svc-admin-list"></div>
+        <div class="add-svc-card">
+          <div class="grid3">
+            <div class="field"><label>Nombre del servicio</label><input id="new-svc-nombre" placeholder="Ej. Limpieza facial profunda"></div>
+            <div class="field"><label>Categoría</label>
+              <select id="new-svc-categoria"></select>
+            </div>
+            <div class="field"><label>Precio (€)</label><input id="new-svc-precio" type="number" min="0" step="0.5" placeholder="45"></div>
+            <div class="field"><label>Duración (min)</label><input id="new-svc-duracion" type="number" min="5" step="5" placeholder="60"></div>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="addServicio()">Añadir servicio</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+<div id="modal-root"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* ============ FIREBASE ============ */
+const firebaseConfig = {
+  apiKey: "AIzaSyB8VN6sm1XpBn4sTAVCHLMg5mrWaJObhkY",
+  authDomain: "machereagenda.firebaseapp.com",
+  projectId: "machereagenda",
+  storageBucket: "machereagenda.firebasestorage.app",
+  messagingSenderId: "264453428542",
+  appId: "1:264453428542:web:9e16d6e73dfbe240e6086f"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const svcCol = db.collection('services');
+const cliCol = db.collection('clients');
+const bkCol = db.collection('bookings');
+const setDoc = db.collection('settings').doc('config');
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function euros(n){ return Number(n).toLocaleString('es-ES',{minimumFractionDigits:0,maximumFractionDigits:2})+' €'; }
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ============ STATE ============ */
+let services = [];
+let clients = [];
+let bookings = [];
+let settings = { open:'10:00', close:'20:00', slot:30, closedDays:[0], employees:['Empleada 1','Empleada 2'] };
+const ADMIN_PIN = '1234';
+
+let agendaDate = new Date();
+
+const DOW = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const CATEGORIES = ['Peluquería','Barbería','Tratamientos faciales','Tratamientos corporales','Masajes','Manicura','Pedicura','Pestañas','Micropigmentación','Depilación láser','Depilación cera','Depilación hilo'];
+function fmtDate(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function fmtDateLabel(d){ return d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}); }
+function empList(){
+  const emps = settings.employees && settings.employees.filter(Boolean).length===2 ? settings.employees : ['Empleada 1','Empleada 2'];
+  return emps;
+}
+
+/* ============ INIT (Firestore en tiempo real) ============ */
+function init(){
+  svcCol.onSnapshot(snap=>{
+    services = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    renderSvcAdminList();
+  }, err=>showToast('Error al leer servicios: revisa las reglas de Firestore'));
+
+  cliCol.onSnapshot(snap=>{
+    clients = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    renderClientList();
+  }, err=>showToast('Error al leer clientes'));
+
+  bkCol.onSnapshot(snap=>{
+    bookings = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    renderAgenda();
+    renderClientList();
+  }, err=>showToast('Error al leer reservas'));
+
+  setDoc.onSnapshot(doc=>{
+    if(doc.exists) settings = { ...settings, ...doc.data() };
+    renderSettingsForm();
+    renderClosedDays();
+    renderAgenda();
+  }, err=>showToast('Error al leer horario'));
+}
+init();
+populateCategorySelect();
+
+/* ============ PANEL NAV ============ */
+document.querySelectorAll('.panel-nav button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('.panel-nav button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.querySelectorAll('.p-view').forEach(v=>v.classList.add('hidden'));
+    document.getElementById('p-'+b.dataset.p).classList.remove('hidden');
+    if(b.dataset.p==='clientes') renderClientList();
+    if(b.dataset.p==='servicios'){ renderSvcAdminList(); populateCategorySelect(); }
+    if(b.dataset.p==='agenda') renderAgenda();
+  });
+});
+
+function checkPin(){
+  const val = document.getElementById('pin-input').value;
+  if(val === ADMIN_PIN){
+    document.getElementById('panel-gate').classList.add('hidden');
+    document.getElementById('panel-content').classList.remove('hidden');
+    document.getElementById('pin-error').style.display='none';
+  } else {
+    document.getElementById('pin-error').style.display='block';
+  }
+}
+
+/* ============ AGENDA (panel) ============ */
+function setAgendaDate(iso){
+  agendaDate = new Date(iso+'T00:00:00');
+  renderAgenda();
+}
+function shiftAgendaDay(n){
+  agendaDate.setDate(agendaDate.getDate()+n);
+  renderAgenda();
+}
+function bookingServiceList(b){
+  if(Array.isArray(b.services) && b.services.length) return b.services;
+  return [{ id:b.serviceId, name:b.serviceName, price:b.price, duration:b.duration }];
+}
+function bookingItemHtml(b){
+  const svcList = bookingServiceList(b);
+  const svcNames = svcList.map(s=>s.name).join(' + ');
+  return `
+    <div class="booking-item">
+      <div class="time">${b.time}</div>
+      <div class="info">
+        <b>${escapeHtml(b.clientName)}</b>
+        <span>${escapeHtml(svcNames)} · ${b.duration} min · ${euros(b.price)} · ${escapeHtml(b.clientPhone)}</span>
+        ${b.paid ? `<span class="svc-tags">💶 Cobrado</span>` : ''}
+        ${b.notes ? `<span style="display:block;font-style:italic">"${escapeHtml(b.notes)}"</span>` : ''}
+        <select class="emp-select" onchange="changeBookingEmployee('${b.id}',this.value)">
+          ${empList().map(e=>`<option value="${escapeHtml(e)}" ${b.employee===e?'selected':''}>${escapeHtml(e)}</option>`).join('')}
+        </select>
+      </div>
+      <span class="status-badge status-${b.status}">${b.status}</span>
+      <div class="booking-actions">
+        <button class="icon-btn" title="Añadir servicio" onclick="openAddServiceModal('${b.id}')">＋</button>
+        <button class="icon-btn" title="Calcular cobro" onclick="openCobroModal('${b.id}')">€</button>
+        ${b.status==='confirmada' ? `<button class="icon-btn" title="Marcar completada" onclick="setBookingStatus('${b.id}','completada')">✓</button>` : ''}
+        ${b.status!=='cancelada' ? `<button class="icon-btn" title="Cancelar" onclick="setBookingStatus('${b.id}','cancelada')">✕</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+function renderAgenda(){
+  const labelEl = document.getElementById('agenda-date-label');
+  if(!labelEl) return;
+  labelEl.textContent = fmtDateLabel(agendaDate);
+  document.getElementById('agenda-date-pick').value = fmtDate(agendaDate);
+  const iso = fmtDate(agendaDate);
+  const dayBookings = bookings
+    .filter(b=>b.date===iso)
+    .sort((a,b)=>a.time.localeCompare(b.time));
+
+  const el = document.getElementById('agenda-list');
+  if(dayBookings.length===0){
+    el.innerHTML = `<div class="empty"><div class="big">Sin reservas este día</div>Las nuevas reservas online aparecerán aquí</div>`;
+    return;
+  }
+  const emps = empList();
+  el.innerHTML = emps.map(emp=>{
+    const empBookings = dayBookings.filter(b=>(b.employee||emps[0])===emp);
+    return `<div class="agenda-col">
+      <h4>${escapeHtml(emp)}</h4>
+      ${empBookings.length ? empBookings.map(bookingItemHtml).join('') : '<div class="empty" style="padding:24px 10px">Sin citas</div>'}
+    </div>`;
+  }).join('');
+}
+async function setBookingStatus(id, status){
+  try{
+    await bkCol.doc(id).update({ status });
+    showToast('Reserva actualizada');
+  }catch(e){ showToast('No se pudo actualizar'); }
+}
+async function changeBookingEmployee(id, employee){
+  try{
+    await bkCol.doc(id).update({ employee });
+    showToast('Empleada reasignada');
+  }catch(e){ showToast('No se pudo reasignar'); }
+}
+async function saveEmployees(){
+  const e0 = document.getElementById('set-emp-0').value.trim() || 'Empleada 1';
+  const e1 = document.getElementById('set-emp-1').value.trim() || 'Empleada 2';
+  try{
+    await setDoc.set({ employees:[e0,e1] }, { merge:true });
+    showToast('Empleadas guardadas');
+  }catch(e){ showToast('No se pudieron guardar las empleadas'); }
+}
+
+/* ============ MODALES: añadir servicio / calculadora de cobro ============ */
+function closeModal(){ document.getElementById('modal-root').innerHTML=''; }
+function openAddServiceModal(bookingId){
+  const root = document.getElementById('modal-root');
+  const options = services.map(s=>`
+    <div class="pickable-svc">
+      <span>${escapeHtml(s.name)} · ${euros(s.price)}</span>
+      <button onclick="addServiceToBooking('${bookingId}','${s.id}')">Añadir</button>
+    </div>
+  `).join('');
+  root.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal-box">
+        <h3>Añadir servicio a la cita</h3>
+        ${options || '<p style="color:var(--muted);font-style:italic">No hay servicios cargados</p>'}
+        <div class="row-btns" style="margin-top:16px"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Cerrar</button></div>
+      </div>
+    </div>
+  `;
+}
+async function addServiceToBooking(bookingId, svcId){
+  const b = bookings.find(x=>x.id===bookingId);
+  const s = services.find(x=>x.id===svcId);
+  if(!b || !s) return;
+  const list = bookingServiceList(b).concat([{ id:s.id, name:s.name, price:s.price, duration:s.duration }]);
+  const totalPrice = list.reduce((a,x)=>a+Number(x.price||0),0);
+  const totalDuration = list.reduce((a,x)=>a+Number(x.duration||0),0);
+  try{
+    await bkCol.doc(bookingId).update({
+      services:list,
+      serviceName: list.map(x=>x.name).join(', '),
+      price: totalPrice,
+      duration: totalDuration
+    });
+    showToast('Servicio añadido a la cita');
+    closeModal();
+  }catch(e){ showToast('No se pudo añadir el servicio'); }
+}
+
+function openCobroModal(bookingId){
+  const b = bookings.find(x=>x.id===bookingId);
+  if(!b) return;
+  const root = document.getElementById('modal-root');
+  const svcList = bookingServiceList(b);
+  const rows = svcList.map(s=>`<div class="calc-row"><span>${escapeHtml(s.name)}</span><span>${euros(s.price)}</span></div>`).join('');
+  root.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal-box">
+        <h3>Calculadora de cobro</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:10px">${escapeHtml(b.clientName)} · ${b.date} ${b.time}</p>
+        ${rows}
+        <div class="calc-adjust">
+          <div class="field"><label>Descuento (%)</label><input type="number" id="cobro-desc" min="0" max="100" value="0" oninput="updateCobroTotal(${JSON.stringify(b.price)})"></div>
+          <div class="field"><label>Propina (€)</label><input type="number" id="cobro-tip" min="0" step="0.5" value="0" oninput="updateCobroTotal(${JSON.stringify(b.price)})"></div>
+        </div>
+        <div class="calc-row total"><span>Total a cobrar</span><span id="cobro-total">${euros(b.price)}</span></div>
+        <div class="row-btns" style="margin-top:16px">
+          <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cerrar</button>
+          <button class="btn btn-gold btn-sm" onclick="marcarCobrado('${b.id}')">Marcar como cobrado</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function updateCobroTotal(basePrice){
+  const desc = Number(document.getElementById('cobro-desc').value||0);
+  const tip = Number(document.getElementById('cobro-tip').value||0);
+  const total = basePrice * (1 - desc/100) + tip;
+  document.getElementById('cobro-total').textContent = euros(Math.max(0,total));
+}
+async function marcarCobrado(bookingId){
+  const b = bookings.find(x=>x.id===bookingId);
+  if(!b) return;
+  const desc = Number(document.getElementById('cobro-desc').value||0);
+  const tip = Number(document.getElementById('cobro-tip').value||0);
+  const total = Math.max(0, b.price * (1 - desc/100) + tip);
+  try{
+    await bkCol.doc(bookingId).update({ paid:true, paidAmount:total });
+    showToast('Cobro registrado: '+euros(total));
+    closeModal();
+  }catch(e){ showToast('No se pudo registrar el cobro'); }
+}
+
+/* ============ CLIENTES (panel) ============ */
+let openClientId = null;
+function renderClientList(){
+  const searchEl = document.getElementById('client-search');
+  if(!searchEl) return;
+  const q = (searchEl.value||'').toLowerCase().trim();
+  const el = document.getElementById('client-list');
+  let list = [...clients].sort((a,b)=>a.name.localeCompare(b.name));
+  if(q) list = list.filter(c=>c.name.toLowerCase().includes(q) || c.phone.includes(q));
+
+  if(list.length===0){
+    el.innerHTML = `<div class="empty"><div class="big">No hay clientes todavía</div>Las fichas se crean solas cuando alguien reserva</div>`;
+    document.getElementById('client-detail-wrap').innerHTML='';
+    return;
+  }
+  el.innerHTML = list.map(c=>{
+    const visits = bookings.filter(b=>b.clientId===c.id).length;
+    return `<button class="client-row" onclick="openClient('${c.id}')">
+      <div><b>${escapeHtml(c.name)}</b><br><span>${escapeHtml(c.phone)}</span></div>
+      <span>${visits} cita${visits===1?'':'s'}</span>
+    </button>`;
+  }).join('');
+  if(openClientId) renderClientDetail(openClientId);
+}
+function openClient(id){
+  openClientId = id;
+  renderClientDetail(id);
+}
+function renderClientDetail(id){
+  const c = clients.find(x=>x.id===id);
+  const wrap = document.getElementById('client-detail-wrap');
+  if(!c){ wrap.innerHTML=''; return; }
+  const history = bookings.filter(b=>b.clientId===id).sort((a,b)=> (b.date+b.time).localeCompare(a.date+a.time));
+  wrap.innerHTML = `
+    <div class="card client-detail">
+      <h3 style="margin-bottom:16px">${escapeHtml(c.name)}</h3>
+      <div class="two-col">
+        <div>
+          <div class="field"><label>Teléfono</label><input value="${escapeHtml(c.phone)}" onchange="updateClientField('${c.id}','phone',this.value)"></div>
+          <div class="field"><label>Email</label><input value="${escapeHtml(c.email||'')}" onchange="updateClientField('${c.id}','email',this.value)"></div>
+          <div class="field"><label>Notas internas</label><textarea rows="4" onchange="updateClientField('${c.id}','notes',this.value)">${escapeHtml(c.notes||'')}</textarea></div>
+        </div>
+        <div>
+          <label>Historial de citas</label>
+          ${history.length===0 ? '<p style="color:var(--muted);font-style:italic;font-size:13px">Sin citas todavía</p>' :
+            history.map(h=>`<div class="hist-item"><span>${h.date} · ${h.time} · ${escapeHtml(bookingServiceList(h).map(s=>s.name).join(' + '))} · ${euros(h.price)}${h.employee?' · '+escapeHtml(h.employee):''}</span><span class="status-badge status-${h.status}">${h.status}</span></div>`).join('')
+          }
+        </div>
+      </div>
+      <div class="row-btns" style="justify-content:flex-start;margin-top:20px">
+        <button class="btn btn-ghost btn-sm" onclick="closeClientDetail()">Cerrar ficha</button>
+        <button class="btn btn-ghost btn-sm btn-danger" onclick="deleteClient('${c.id}','${escapeHtml(c.name).replace(/'/g,"\\'")}')">Eliminar cliente</button>
+      </div>
+    </div>
+  `;
+}
+async function updateClientField(id, field, value){
+  try{
+    await cliCol.doc(id).update({ [field]: value });
+    showToast('Ficha guardada');
+  }catch(e){ showToast('No se pudo guardar la ficha'); }
+}
+async function deleteClient(id, name){
+  if(!confirm(`¿Seguro que quieres eliminar a ${name}? Esta acción no se puede deshacer.`)) return;
+  const visits = bookings.filter(b=>b.clientId===id);
+  const alsoDeleteHistory = visits.length>0
+    ? confirm(`${name} tiene ${visits.length} cita(s) en el historial. ¿Borrarlas también? Aceptar = borrar todo. Cancelar = dejar las citas y borrar solo la ficha del cliente.`)
+    : false;
+  try{
+    if(alsoDeleteHistory){
+      await Promise.all(visits.map(v=>bkCol.doc(v.id).delete()));
+    }
+    await cliCol.doc(id).delete();
+    closeClientDetail();
+    showToast('Cliente eliminado');
+  }catch(e){ showToast('No se pudo eliminar el cliente'); }
+}
+function closeClientDetail(){
+  openClientId = null;
+  document.getElementById('client-detail-wrap').innerHTML = '';
+}
+
+/* ============ SERVICIOS (panel) ============ */
+function renderSvcAdminList(){
+  const el = document.getElementById('svc-admin-list');
+  if(!el) return;
+  if(services.length===0){
+    el.innerHTML = `<div class="empty"><div class="big">Todavía no has añadido servicios</div>Usa el formulario de abajo para crear el primero</div>`;
+    return;
+  }
+  el.innerHTML = services.map(s=>`
+    <div class="svc-row">
+      <input value="${escapeHtml(s.name)}" onchange="updateSvcField('${s.id}','name',this.value)">
+      <select onchange="updateSvcField('${s.id}','category',this.value)">
+        ${CATEGORIES.map(c=>`<option value="${escapeHtml(c)}" ${s.category===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <input type="number" value="${s.price}" step="0.5" onchange="updateSvcField('${s.id}','price',Number(this.value))">
+      <input type="number" value="${s.duration}" step="5" onchange="updateSvcField('${s.id}','duration',Number(this.value))">
+      <button class="icon-btn btn-danger" title="Eliminar" onclick="deleteSvc('${s.id}')">✕</button>
+    </div>
+  `).join('');
+}
+async function updateSvcField(id, field, value){
+  try{
+    await svcCol.doc(id).update({ [field]: value });
+    showToast('Servicio actualizado');
+  }catch(e){ showToast('No se pudo actualizar'); }
+}
+async function deleteSvc(id){
+  try{
+    await svcCol.doc(id).delete();
+    showToast('Servicio eliminado');
+  }catch(e){ showToast('No se pudo eliminar'); }
+}
+function populateCategorySelect(){
+  const sel = document.getElementById('new-svc-categoria');
+  if(!sel || sel.options.length) return;
+  sel.innerHTML = CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${c}</option>`).join('');
+}
+async function addServicio(){
+  const name = document.getElementById('new-svc-nombre').value.trim();
+  const category = document.getElementById('new-svc-categoria').value;
+  const price = Number(document.getElementById('new-svc-precio').value);
+  const duration = Number(document.getElementById('new-svc-duracion').value);
+  if(!name || !price || !duration){ showToast('Completa nombre, precio y duración'); return; }
+  try{
+    await svcCol.add({ name, category, price, duration });
+    document.getElementById('new-svc-nombre').value='';
+    document.getElementById('new-svc-precio').value='';
+    document.getElementById('new-svc-duracion').value='';
+    showToast('Servicio añadido');
+  }catch(e){ showToast('No se pudo añadir el servicio'); }
+}
+
+/* ============ SETTINGS (horario) ============ */
+function renderSettingsForm(){
+  const openEl = document.getElementById('set-open');
+  if(!openEl) return;
+  openEl.value = settings.open;
+  document.getElementById('set-close').value = settings.close;
+  document.getElementById('set-slot').value = String(settings.slot);
+  const emps = settings.employees && settings.employees.length===2 ? settings.employees : ['Empleada 1','Empleada 2'];
+  document.getElementById('set-emp-0').value = emps[0];
+  document.getElementById('set-emp-1').value = emps[1];
+}
+function renderClosedDays(){
+  const el = document.getElementById('closed-days');
+  if(!el) return;
+  el.innerHTML = DOW.map((d,i)=>`<button class="${(settings.closedDays||[]).includes(i)?'on':''}" onclick="toggleClosedDay(${i})">${d}</button>`).join('');
+}
+function toggleClosedDay(i){
+  const arr = settings.closedDays || [];
+  const idx = arr.indexOf(i);
+  if(idx>-1) arr.splice(idx,1); else arr.push(i);
+  settings.closedDays = arr;
+  renderClosedDays();
+}
+async function saveSettings(){
+  const open = document.getElementById('set-open').value || '10:00';
+  const close = document.getElementById('set-close').value || '20:00';
+  const slot = Number(document.getElementById('set-slot').value || 30);
+  try{
+    await setDoc.set({ open, close, slot, closedDays: settings.closedDays||[] }, { merge:true });
+    showToast('Horario guardado');
+  }catch(e){ showToast('No se pudo guardar el horario'); }
+}
+</script>
+</body>
+</html>
