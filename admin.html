@@ -157,6 +157,25 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
 .day-toggle button{width:38px;height:38px;border-radius:50%;border:1px solid var(--border);font-size:11px;font-weight:600}
 .day-toggle button.on{background:var(--gold);color:var(--cream);border-color:var(--gold)}
 
+/* HORARIO PERSONALIZADO POR DÍA */
+.hours-grid{display:flex;flex-direction:column}
+.hour-row{display:grid;grid-template-columns:64px 110px 1fr 1fr;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.hour-row:last-child{border-bottom:none}
+.hour-row.closed{opacity:.45}
+.hour-day{font-family:'Playfair Display',serif;font-size:15px}
+.switch-mini{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;white-space:nowrap}
+.switch-mini input{width:auto;accent-color:var(--gold2)}
+@media(max-width:640px){.hour-row{grid-template-columns:48px 84px 1fr 1fr;font-size:12px}}
+
+/* SERVICIOS: visibilidad online */
+.svc-row.with-toggle{grid-template-columns:1.6fr 1.4fr .9fr .9fr auto auto}
+
+/* CLIENTES: resumen */
+.client-stats{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.client-stats .stat{background:var(--cream);border:1px solid var(--border);border-radius:12px;padding:12px 20px;text-align:center;min-width:110px}
+.client-stats .stat b{display:block;font-family:'Playfair Display',serif;font-size:19px;color:var(--gold2)}
+.client-stats .stat span{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
 .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:var(--ivory);padding:14px 26px;border-radius:24px;font-size:13px;opacity:0;transition:all .35s;pointer-events:none;z-index:999}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -182,6 +201,14 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
 .booking-item{flex-wrap:wrap}
 .booking-item .emp-select{width:auto;font-size:11px;padding:6px 8px;margin-top:6px}
 .svc-tags{font-size:12px;color:var(--muted);display:block;margin-top:2px}
+
+/* AGENDA - HUECOS LIBRES (agendar manual) */
+.slot-empty{display:flex;justify-content:space-between;align-items:center;width:100%;padding:12px 16px;border:1px dashed var(--border);border-radius:10px;margin-bottom:8px;background:transparent;color:var(--muted);font-size:12px;transition:all .2s;text-align:left}
+.slot-empty:hover{border-color:var(--gold);background:var(--ivory);color:var(--gold2)}
+.slot-empty .slot-time{font-family:'Playfair Display',serif;font-size:16px;color:var(--muted);transition:color .2s}
+.slot-empty:hover .slot-time{color:var(--gold2)}
+.slot-empty .slot-plus{font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.svc-pick-wrap{max-height:170px;overflow-y:auto;margin:8px 0 14px;border-radius:10px}
 
 /* MODAL (cobro / añadir servicio) */
 .modal-overlay{position:fixed;inset:0;background:rgba(26,23,20,.55);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
@@ -237,6 +264,7 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
           <h3 id="agenda-date-label" style="flex:1"></h3>
           <button class="icon-btn" onclick="shiftAgendaDay(1)">›</button>
           <input type="date" id="agenda-date-pick" style="width:auto" onchange="setAgendaDate(this.value)">
+          <button class="btn btn-gold btn-sm" onclick="openManualBookingModal(empList()[0],'')">＋ Agendar manual</button>
         </div>
         <div id="agenda-list" class="agenda-cols"></div>
       </div>
@@ -260,22 +288,18 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
         </div>
 
         <div class="card" style="margin-bottom:24px">
-          <h3 style="margin-bottom:16px">Horario del centro</h3>
-          <div class="settings-row">
-            <div class="field"><label>Apertura</label><input type="time" id="set-open"></div>
-            <div class="field"><label>Cierre</label><input type="time" id="set-close"></div>
-            <div class="field"><label>Duración de turno</label>
-              <select id="set-slot"><option value="15">15 min</option><option value="30">30 min</option><option value="60">60 min</option></select>
-            </div>
-          </div>
-          <div class="field" style="margin-top:14px">
-            <label>Días cerrados</label>
-            <div class="day-toggle" id="closed-days"></div>
+          <h3 style="margin-bottom:6px">Horario del centro</h3>
+          <p style="color:var(--muted);font-style:italic;font-size:12px;margin-bottom:16px">Personaliza la apertura y el cierre de cada día. Desmarca "Abierto" para cerrar ese día.</p>
+          <div class="hours-grid" id="hours-config"></div>
+          <div class="field" style="max-width:220px;margin-top:16px">
+            <label>Duración de turno</label>
+            <select id="set-slot"><option value="15">15 min</option><option value="30">30 min</option><option value="60">60 min</option></select>
           </div>
           <button class="btn btn-dark btn-sm" onclick="saveSettings()">Guardar horario</button>
         </div>
 
         <h3 style="margin-bottom:14px">Servicios y precios</h3>
+        <p style="color:var(--muted);font-style:italic;font-size:12px;margin:-6px 0 14px">Marca "Online" para que un servicio aparezca en la reserva pública. Desmárcalo para dejarlo solo disponible al agendar manualmente desde el panel.</p>
         <div id="svc-admin-list"></div>
         <div class="add-svc-card">
           <div class="grid3">
@@ -286,6 +310,8 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
             <div class="field"><label>Precio (€)</label><input id="new-svc-precio" type="number" min="0" step="0.5" placeholder="45"></div>
             <div class="field"><label>Duración (min)</label><input id="new-svc-duracion" type="number" min="5" step="5" placeholder="60"></div>
           </div>
+          <label class="switch-mini" style="margin:10px 0 14px"><input type="checkbox" id="new-svc-public" checked> Visible en la reserva online</label>
+          <br>
           <button class="btn btn-gold btn-sm" onclick="addServicio()">Añadir servicio</button>
         </div>
       </div>
@@ -330,13 +356,24 @@ function escapeHtml(s){
 let services = [];
 let clients = [];
 let bookings = [];
-let settings = { open:'10:00', close:'20:00', slot:30, closedDays:[0], employees:['Empleada 1','Empleada 2'] };
+let settings = { open:'10:00', close:'20:00', slot:30, closedDays:[0], employees:['Empleada 1','Empleada 2'], hours:null };
 const ADMIN_PIN = '1234';
 
 let agendaDate = new Date();
 
 const DOW = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const DOW_ORDER = [1,2,3,4,5,6,0]; // mostrar Lunes -> Domingo en el formulario
 const CATEGORIES = ['Peluquería','Barbería','Tratamientos faciales','Tratamientos corporales','Masajes','Manicura','Pedicura','Pestañas','Micropigmentación','Depilación láser','Depilación cera','Depilación hilo'];
+function defaultHours(){
+  const h = {};
+  for(let i=0;i<7;i++){
+    h[i] = { open: settings.open||'10:00', close: settings.close||'20:00', closed: (settings.closedDays||[0]).includes(i) };
+  }
+  return h;
+}
+function getHours(){
+  return (settings.hours && Object.keys(settings.hours).length===7) ? settings.hours : defaultHours();
+}
 function fmtDate(d){
   const y = d.getFullYear();
   const m = String(d.getMonth()+1).padStart(2,'0');
@@ -370,7 +407,6 @@ function init(){
   setDoc.onSnapshot(doc=>{
     if(doc.exists) settings = { ...settings, ...doc.data() };
     renderSettingsForm();
-    renderClosedDays();
     renderAgenda();
   }, err=>showToast('Error al leer horario'));
 }
@@ -439,6 +475,18 @@ function bookingItemHtml(b){
     </div>
   `;
 }
+function timeToMin(t){ const [h,m]=String(t).split(':').map(Number); return h*60+(m||0); }
+function minToTime(m){ const h=String(Math.floor(m/60)).padStart(2,'0'); const mm=String(m%60).padStart(2,'0'); return `${h}:${mm}`; }
+function genTimeSlots(dayIndex){
+  const day = getHours()[dayIndex];
+  if(!day || day.closed) return [];
+  const slots=[];
+  let cur = timeToMin(day.open||'10:00');
+  const end = timeToMin(day.close||'20:00');
+  const step = Number(settings.slot||30) || 30;
+  while(cur < end){ slots.push(minToTime(cur)); cur += step; }
+  return slots;
+}
 function renderAgenda(){
   const labelEl = document.getElementById('agenda-date-label');
   if(!labelEl) return;
@@ -449,17 +497,37 @@ function renderAgenda(){
     .filter(b=>b.date===iso)
     .sort((a,b)=>a.time.localeCompare(b.time));
 
+  const emps = empList();
+  const slots = genTimeSlots(agendaDate.getDay());
   const el = document.getElementById('agenda-list');
-  if(dayBookings.length===0){
-    el.innerHTML = `<div class="empty"><div class="big">Sin reservas este día</div>Las nuevas reservas online aparecerán aquí</div>`;
+
+  if(slots.length===0){
+    el.innerHTML = `<div class="empty"><div class="big">Cerrado este día</div>Puedes cambiarlo en Servicios → Horario del centro</div>`;
     return;
   }
-  const emps = empList();
+
   el.innerHTML = emps.map(emp=>{
     const empBookings = dayBookings.filter(b=>(b.employee||emps[0])===emp);
+    let rowsHtml = '';
+    slots.forEach(slotTime=>{
+      const startingBooking = empBookings.find(b=>b.time===slotTime);
+      if(startingBooking){
+        rowsHtml += bookingItemHtml(startingBooking);
+        return;
+      }
+      const covered = empBookings.some(b=>{
+        if(b.status==='cancelada') return false;
+        const s=timeToMin(b.time), e=s+Number(b.duration||0), t=timeToMin(slotTime);
+        return t>s && t<e;
+      });
+      if(covered) return;
+      rowsHtml += `<button class="slot-empty" onclick="openManualBookingModal('${escapeHtml(emp).replace(/'/g,"\\'")}','${slotTime}')">
+        <span class="slot-time">${slotTime}</span><span class="slot-plus">＋ Agendar</span>
+      </button>`;
+    });
     return `<div class="agenda-col">
       <h4>${escapeHtml(emp)}</h4>
-      ${empBookings.length ? empBookings.map(bookingItemHtml).join('') : '<div class="empty" style="padding:24px 10px">Sin citas</div>'}
+      ${rowsHtml}
     </div>`;
   }).join('');
 }
@@ -521,6 +589,120 @@ async function addServiceToBooking(bookingId, svcId){
     showToast('Servicio añadido a la cita');
     closeModal();
   }catch(e){ showToast('No se pudo añadir el servicio'); }
+}
+
+/* ============ MODAL: agendar cita manual ============ */
+let manualBooking = { employee:'', time:'', services:[] };
+function openManualBookingModal(employee, time){
+  manualBooking = { employee: employee || empList()[0], time: time || '', services: [] };
+  renderManualBookingModal();
+}
+function renderManualBookingModal(){
+  const root = document.getElementById('modal-root');
+  const iso = fmtDate(agendaDate);
+  const totalPrice = manualBooking.services.reduce((a,s)=>a+Number(s.price||0),0);
+  const totalDuration = manualBooking.services.reduce((a,s)=>a+Number(s.duration||0),0);
+
+  const svcOptions = services.map(s=>`
+    <div class="pickable-svc">
+      <span>${escapeHtml(s.name)} · ${euros(s.price)} · ${s.duration} min</span>
+      <button onclick="addManualSvc('${s.id}')">Añadir</button>
+    </div>
+  `).join('') || '<p style="color:var(--muted);font-style:italic;font-size:13px">No hay servicios cargados</p>';
+
+  const chosenList = manualBooking.services.length
+    ? manualBooking.services.map((s,i)=>`
+        <div class="calc-row"><span>${escapeHtml(s.name)}</span><span style="display:flex;align-items:center;gap:8px">${euros(s.price)} <button class="icon-btn" style="width:22px;height:22px;font-size:11px" title="Quitar" onclick="removeManualSvc(${i})">✕</button></span></div>
+      `).join('')
+    : '<p style="color:var(--muted);font-style:italic;font-size:13px;margin-bottom:6px">Ningún servicio seleccionado todavía</p>';
+
+  const clientOptions = clients.map(c=>`<option value="${escapeHtml(c.name)}">`).join('');
+
+  root.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal-box">
+        <h3>Agendar cita manual</h3>
+        <div class="settings-row">
+          <div class="field"><label>Empleada</label>
+            <select id="mb-employee">${empList().map(e=>`<option ${e===manualBooking.employee?'selected':''}>${escapeHtml(e)}</option>`).join('')}</select>
+          </div>
+          <div class="field"><label>Fecha</label><input type="date" id="mb-date" value="${iso}"></div>
+          <div class="field"><label>Hora</label><input type="time" id="mb-time" value="${escapeHtml(manualBooking.time)}"></div>
+        </div>
+        <div class="field"><label>Nombre del cliente</label>
+          <input id="mb-name" list="mb-clients" placeholder="Nombre y apellidos" oninput="autofillManualClient(this.value)">
+          <datalist id="mb-clients">${clientOptions}</datalist>
+        </div>
+        <div class="field"><label>Teléfono</label><input id="mb-phone" placeholder="600 000 000"></div>
+
+        <label>Servicios</label>
+        ${chosenList}
+        <div class="svc-pick-wrap">${svcOptions}</div>
+
+        <div class="field"><label>Notas</label><textarea id="mb-notes" rows="2" placeholder="Alergias, preferencias..."></textarea></div>
+
+        <div class="calc-row total"><span>Total</span><span>${euros(totalPrice)} · ${totalDuration} min</span></div>
+
+        <div class="row-btns" style="margin-top:16px">
+          <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancelar</button>
+          <button class="btn btn-gold btn-sm" onclick="confirmManualBooking()">Agendar cita</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function addManualSvc(svcId){
+  const s = services.find(x=>x.id===svcId);
+  if(!s) return;
+  manualBooking.services.push({ id:s.id, name:s.name, price:s.price, duration:s.duration });
+  renderManualBookingModal();
+}
+function removeManualSvc(i){
+  manualBooking.services.splice(i,1);
+  renderManualBookingModal();
+}
+function autofillManualClient(name){
+  const match = clients.find(c=>c.name===name);
+  const phoneEl = document.getElementById('mb-phone');
+  if(match && phoneEl) phoneEl.value = match.phone || '';
+}
+async function confirmManualBooking(){
+  const employee = document.getElementById('mb-employee').value;
+  const date = document.getElementById('mb-date').value;
+  const time = document.getElementById('mb-time').value;
+  const name = document.getElementById('mb-name').value.trim();
+  const phone = document.getElementById('mb-phone').value.trim();
+  const notes = document.getElementById('mb-notes').value.trim();
+
+  if(!name || !phone){ showToast('Completa nombre y teléfono del cliente'); return; }
+  if(!date || !time){ showToast('Completa fecha y hora'); return; }
+  if(manualBooking.services.length===0){ showToast('Añade al menos un servicio'); return; }
+
+  const price = manualBooking.services.reduce((a,s)=>a+Number(s.price||0),0);
+  const duration = manualBooking.services.reduce((a,s)=>a+Number(s.duration||0),0);
+  const serviceName = manualBooking.services.map(s=>s.name).join(', ');
+
+  try{
+    let client = clients.find(c=>c.phone===phone);
+    let clientId;
+    if(client){
+      clientId = client.id;
+      if(client.name !== name) await cliCol.doc(clientId).update({ name });
+    } else {
+      const ref = await cliCol.add({ name, phone, email:'', notes:'' });
+      clientId = ref.id;
+    }
+    await bkCol.add({
+      date, time, employee,
+      clientId, clientName:name, clientPhone:phone,
+      services: manualBooking.services,
+      serviceName, price, duration,
+      status:'confirmada', paid:false, notes,
+      source:'manual'
+    });
+    showToast('Cita agendada manualmente');
+    closeModal();
+  }catch(e){ showToast('No se pudo agendar la cita'); }
 }
 
 function openCobroModal(bookingId){
@@ -600,9 +782,18 @@ function renderClientDetail(id){
   const wrap = document.getElementById('client-detail-wrap');
   if(!c){ wrap.innerHTML=''; return; }
   const history = bookings.filter(b=>b.clientId===id).sort((a,b)=> (b.date+b.time).localeCompare(a.date+a.time));
+  const activeHistory = history.filter(h=>h.status!=='cancelada');
+  const totalSpent = history.reduce((a,h)=> a + (h.paid ? Number(h.paidAmount!=null ? h.paidAmount : h.price||0) : 0), 0);
+  const lastVisit = activeHistory[0] ? activeHistory[0].date : '—';
+
   wrap.innerHTML = `
     <div class="card client-detail">
       <h3 style="margin-bottom:16px">${escapeHtml(c.name)}</h3>
+      <div class="client-stats">
+        <div class="stat"><b>${activeHistory.length}</b><span>Citas</span></div>
+        <div class="stat"><b>${euros(totalSpent)}</b><span>Total gastado</span></div>
+        <div class="stat"><b>${lastVisit}</b><span>Última visita</span></div>
+      </div>
       <div class="two-col">
         <div>
           <div class="field"><label>Teléfono</label><input value="${escapeHtml(c.phone)}" onchange="updateClientField('${c.id}','phone',this.value)"></div>
@@ -612,7 +803,7 @@ function renderClientDetail(id){
         <div>
           <label>Historial de citas</label>
           ${history.length===0 ? '<p style="color:var(--muted);font-style:italic;font-size:13px">Sin citas todavía</p>' :
-            history.map(h=>`<div class="hist-item"><span>${h.date} · ${h.time} · ${escapeHtml(bookingServiceList(h).map(s=>s.name).join(' + '))} · ${euros(h.price)}${h.employee?' · '+escapeHtml(h.employee):''}</span><span class="status-badge status-${h.status}">${h.status}</span></div>`).join('')
+            history.map(h=>`<div class="hist-item"><span>${h.date} · ${h.time} · ${escapeHtml(bookingServiceList(h).map(s=>s.name).join(' + '))} · ${euros(h.price)}${h.employee?' · '+escapeHtml(h.employee):''}${h.paid?' · 💶 Cobrado':''}</span><span class="status-badge status-${h.status}">${h.status}</span></div>`).join('')
           }
         </div>
       </div>
@@ -658,13 +849,16 @@ function renderSvcAdminList(){
     return;
   }
   el.innerHTML = services.map(s=>`
-    <div class="svc-row">
+    <div class="svc-row with-toggle">
       <input value="${escapeHtml(s.name)}" onchange="updateSvcField('${s.id}','name',this.value)">
       <select onchange="updateSvcField('${s.id}','category',this.value)">
         ${CATEGORIES.map(c=>`<option value="${escapeHtml(c)}" ${s.category===c?'selected':''}>${c}</option>`).join('')}
       </select>
       <input type="number" value="${s.price}" step="0.5" onchange="updateSvcField('${s.id}','price',Number(this.value))">
       <input type="number" value="${s.duration}" step="5" onchange="updateSvcField('${s.id}','duration',Number(this.value))">
+      <label class="switch-mini" title="Visible en la reserva online">
+        <input type="checkbox" ${s.public!==false?'checked':''} onchange="updateSvcField('${s.id}','public',this.checked)"> Online
+      </label>
       <button class="icon-btn btn-danger" title="Eliminar" onclick="deleteSvc('${s.id}')">✕</button>
     </div>
   `).join('');
@@ -691,45 +885,69 @@ async function addServicio(){
   const category = document.getElementById('new-svc-categoria').value;
   const price = Number(document.getElementById('new-svc-precio').value);
   const duration = Number(document.getElementById('new-svc-duracion').value);
+  const isPublic = document.getElementById('new-svc-public').checked;
   if(!name || !price || !duration){ showToast('Completa nombre, precio y duración'); return; }
   try{
-    await svcCol.add({ name, category, price, duration });
+    await svcCol.add({ name, category, price, duration, public: isPublic });
     document.getElementById('new-svc-nombre').value='';
     document.getElementById('new-svc-precio').value='';
     document.getElementById('new-svc-duracion').value='';
+    document.getElementById('new-svc-public').checked = true;
     showToast('Servicio añadido');
   }catch(e){ showToast('No se pudo añadir el servicio'); }
 }
 
 /* ============ SETTINGS (horario) ============ */
 function renderSettingsForm(){
-  const openEl = document.getElementById('set-open');
-  if(!openEl) return;
-  openEl.value = settings.open;
-  document.getElementById('set-close').value = settings.close;
-  document.getElementById('set-slot').value = String(settings.slot);
+  const slotEl = document.getElementById('set-slot');
+  if(!slotEl) return;
+  slotEl.value = String(settings.slot||30);
   const emps = settings.employees && settings.employees.length===2 ? settings.employees : ['Empleada 1','Empleada 2'];
   document.getElementById('set-emp-0').value = emps[0];
   document.getElementById('set-emp-1').value = emps[1];
+  renderHoursForm();
 }
-function renderClosedDays(){
-  const el = document.getElementById('closed-days');
+function renderHoursForm(){
+  const el = document.getElementById('hours-config');
   if(!el) return;
-  el.innerHTML = DOW.map((d,i)=>`<button class="${(settings.closedDays||[]).includes(i)?'on':''}" onclick="toggleClosedDay(${i})">${d}</button>`).join('');
+  const hours = getHours();
+  el.innerHTML = DOW_ORDER.map(i=>{
+    const day = hours[i] || { open:'10:00', close:'20:00', closed:false };
+    return `
+    <div class="hour-row ${day.closed?'closed':''}" data-day="${i}">
+      <span class="hour-day">${DOW[i]}</span>
+      <label class="switch-mini"><input type="checkbox" ${!day.closed?'checked':''} onchange="toggleHourRow(${i},this.checked)"> Abierto</label>
+      <input type="time" class="hour-open" value="${day.open||'10:00'}" ${day.closed?'disabled':''}>
+      <input type="time" class="hour-close" value="${day.close||'20:00'}" ${day.closed?'disabled':''}>
+    </div>`;
+  }).join('');
 }
-function toggleClosedDay(i){
-  const arr = settings.closedDays || [];
-  const idx = arr.indexOf(i);
-  if(idx>-1) arr.splice(idx,1); else arr.push(i);
-  settings.closedDays = arr;
-  renderClosedDays();
+function toggleHourRow(i, isOpen){
+  const row = document.querySelector(`.hour-row[data-day="${i}"]`);
+  if(!row) return;
+  row.classList.toggle('closed', !isOpen);
+  row.querySelector('.hour-open').disabled = !isOpen;
+  row.querySelector('.hour-close').disabled = !isOpen;
 }
 async function saveSettings(){
-  const open = document.getElementById('set-open').value || '10:00';
-  const close = document.getElementById('set-close').value || '20:00';
   const slot = Number(document.getElementById('set-slot').value || 30);
+  const hours = {};
+  document.querySelectorAll('.hour-row').forEach(row=>{
+    const i = Number(row.dataset.day);
+    const isOpen = row.querySelector('input[type=checkbox]').checked;
+    hours[i] = {
+      open: row.querySelector('.hour-open').value || '10:00',
+      close: row.querySelector('.hour-close').value || '20:00',
+      closed: !isOpen
+    };
+  });
+  // Campos heredados (open/close/closedDays) para compatibilidad con la web pública
+  const openDayIdx = Object.keys(hours).find(k=>!hours[k].closed);
+  const closedDays = Object.keys(hours).filter(k=>hours[k].closed).map(Number);
+  const open = openDayIdx!=null ? hours[openDayIdx].open : '10:00';
+  const close = openDayIdx!=null ? hours[openDayIdx].close : '20:00';
   try{
-    await setDoc.set({ open, close, slot, closedDays: settings.closedDays||[] }, { merge:true });
+    await setDoc.set({ hours, slot, open, close, closedDays }, { merge:true });
     showToast('Horario guardado');
   }catch(e){ showToast('No se pudo guardar el horario'); }
 }
