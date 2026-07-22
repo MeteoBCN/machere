@@ -194,13 +194,54 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
 .emp-chip{font-size:11px;letter-spacing:.06em;padding:10px 18px;border-radius:18px;border:1px solid var(--border);color:var(--muted);font-weight:600;background:var(--ivory)}
 .emp-chip.sel{background:var(--gold);border-color:var(--gold);color:var(--cream)}
 
-/* AGENDA 2 EMPLOYEES */
-.agenda-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.agenda-col h4{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold2);margin-bottom:12px;font-family:'Open Sans',sans-serif;font-weight:700;border-bottom:1px solid var(--border);padding-bottom:8px}
-@media(max-width:760px){.agenda-cols{grid-template-columns:1fr}}
-.booking-item{flex-wrap:wrap}
-.booking-item .emp-select{width:auto;font-size:11px;padding:6px 8px;margin-top:6px}
-.svc-tags{font-size:12px;color:var(--muted);display:block;margin-top:2px}
+/* AGENDA — VISTA CALENDARIO ESTILO APP */
+.agenda-toolbar{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.agenda-toolbar-title{flex:1;text-align:center;position:relative}
+.agenda-toolbar-title h3{font-size:19px;text-transform:capitalize}
+.agenda-toolbar-title input[type=date]{position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer}
+
+.week-strip{display:flex;gap:4px;overflow-x:auto;padding:10px 2px 22px;justify-content:center}
+.wk-chip{flex-shrink:0;width:42px;padding:8px 2px 10px;border-radius:12px;text-align:center;background:transparent;position:relative;transition:all .2s}
+.wk-chip .wk-dow{display:block;font-size:9px;text-transform:uppercase;color:var(--muted);letter-spacing:.06em}
+.wk-chip .wk-num{display:block;font-family:'Playfair Display',serif;font-size:17px;margin-top:3px;color:var(--dark)}
+.wk-chip.sel{background:var(--gold)}
+.wk-chip.sel .wk-dow,.wk-chip.sel .wk-num{color:var(--cream)}
+.wk-chip.closed{opacity:.35}
+.wk-chip .wk-dot{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--gold2)}
+.wk-chip.sel .wk-dot{background:var(--cream)}
+
+.cal-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:16px;background:var(--ivory);-webkit-overflow-scrolling:touch}
+.cal-emp-headers{display:grid;grid-template-columns:52px repeat(var(--emp-count,2),minmax(180px,1fr));border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--ivory);z-index:2;border-radius:16px 16px 0 0}
+.cal-axis-spacer{border-right:1px solid var(--border)}
+.cal-emp-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-right:1px solid var(--border)}
+.cal-emp-head:last-child{border-right:none}
+.emp-avatar{width:34px;height:34px;border-radius:50%;background:var(--gold);color:var(--cream);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:15px;flex-shrink:0}
+.cal-emp-head b{font-size:13px;display:block;font-weight:700}
+.cal-emp-head span{font-size:11px;color:var(--muted)}
+
+.cal-grid{display:grid;grid-template-columns:52px repeat(var(--emp-count,2),minmax(180px,1fr));position:relative}
+.cal-axis{position:relative;border-right:1px solid var(--border)}
+.cal-axis-mark{position:absolute;left:0;right:6px;transform:translateY(-50%);text-align:right;font-size:9px;color:var(--muted)}
+.cal-axis-mark.hour{font-weight:700;color:var(--dark);font-size:11px}
+.cal-col{position:relative;border-right:1px solid var(--border);cursor:pointer}
+.cal-col:last-child{border-right:none}
+.cal-line{position:absolute;left:0;right:0;border-top:1px solid var(--border);opacity:.45}
+.cal-line.hour{opacity:.9}
+.cal-card{position:absolute;left:4px;right:4px;border-left:3px solid;border-radius:8px;padding:6px 26px 6px 9px;text-align:left;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);transition:box-shadow .15s;z-index:1}
+.cal-card:hover{box-shadow:0 3px 10px rgba(0,0,0,.16);z-index:3}
+.cal-card.cancelled{opacity:.4;text-decoration:line-through}
+.cal-card-time{display:block;font-size:9px;font-weight:700;letter-spacing:.02em;color:var(--charcoal);opacity:.7}
+.cal-card-name{display:block;font-size:12px;font-weight:700;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-card-svc{display:block;font-size:11px;color:var(--charcoal);opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-card-icons{position:absolute;top:6px;right:8px;font-size:10px;line-height:1}
+
+.fab-add{position:fixed;bottom:28px;right:24px;width:54px;height:54px;border-radius:50%;background:var(--dark);color:var(--cream);font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:40}
+.fab-add:hover{background:var(--charcoal)}
+@media(max-width:640px){
+  .cal-emp-head b{font-size:12px}
+  .cal-emp-head span{font-size:10px}
+  .fab-add{width:48px;height:48px;font-size:19px;bottom:20px;right:16px}
+}
 
 /* AGENDA - HUECOS LIBRES (agendar manual) */
 .slot-empty{display:flex;justify-content:space-between;align-items:center;width:100%;padding:12px 16px;border:1px dashed var(--border);border-radius:10px;margin-bottom:8px;background:transparent;color:var(--muted);font-size:12px;transition:all .2s;text-align:left}
@@ -259,14 +300,20 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
 
       <!-- AGENDA -->
       <div id="p-agenda" class="p-view">
-        <div class="agenda-day-head">
+        <div class="agenda-toolbar">
           <button class="icon-btn" onclick="shiftAgendaDay(-1)">‹</button>
-          <h3 id="agenda-date-label" style="flex:1"></h3>
+          <div class="agenda-toolbar-title">
+            <h3 id="agenda-date-label"></h3>
+            <input type="date" id="agenda-date-pick" onchange="setAgendaDate(this.value)">
+          </div>
           <button class="icon-btn" onclick="shiftAgendaDay(1)">›</button>
-          <input type="date" id="agenda-date-pick" style="width:auto" onchange="setAgendaDate(this.value)">
-          <button class="btn btn-gold btn-sm" onclick="openManualBookingModal(empList()[0],'')">＋ Agendar manual</button>
         </div>
-        <div id="agenda-list" class="agenda-cols"></div>
+        <div class="week-strip" id="week-strip"></div>
+        <div class="cal-wrap">
+          <div class="cal-emp-headers" id="cal-emp-headers"></div>
+          <div class="cal-grid" id="cal-grid"></div>
+        </div>
+        <button class="fab-add" title="Agendar manual" onclick="openManualBookingModal(empList()[0],'')">＋</button>
       </div>
 
       <!-- CLIENTES -->
@@ -450,30 +497,50 @@ function bookingServiceList(b){
   if(Array.isArray(b.services) && b.services.length) return b.services;
   return [{ id:b.serviceId, name:b.serviceName, price:b.price, duration:b.duration }];
 }
-function bookingItemHtml(b){
-  const svcList = bookingServiceList(b);
-  const svcNames = svcList.map(s=>s.name).join(' + ');
-  return `
-    <div class="booking-item">
-      <div class="time">${b.time}</div>
-      <div class="info">
-        <b>${escapeHtml(b.clientName)}</b>
-        <span>${escapeHtml(svcNames)} · ${b.duration} min · ${euros(b.price)} · ${escapeHtml(b.clientPhone)}</span>
-        ${b.paid ? `<span class="svc-tags">💶 Cobrado</span>` : ''}
-        ${b.notes ? `<span style="display:block;font-style:italic">"${escapeHtml(b.notes)}"</span>` : ''}
-        <select class="emp-select" onchange="changeBookingEmployee('${b.id}',this.value)">
-          ${empList().map(e=>`<option value="${escapeHtml(e)}" ${b.employee===e?'selected':''}>${escapeHtml(e)}</option>`).join('')}
-        </select>
-      </div>
-      <span class="status-badge status-${b.status}">${b.status}</span>
-      <div class="booking-actions">
-        <button class="icon-btn" title="Añadir servicio" onclick="openAddServiceModal('${b.id}')">＋</button>
-        <button class="icon-btn" title="Calcular cobro" onclick="openCobroModal('${b.id}')">€</button>
-        ${b.status==='confirmada' ? `<button class="icon-btn" title="Marcar completada" onclick="setBookingStatus('${b.id}','completada')">✓</button>` : ''}
-        ${b.status!=='cancelada' ? `<button class="icon-btn" title="Cancelar" onclick="setBookingStatus('${b.id}','cancelada')">✕</button>` : ''}
-      </div>
-    </div>
-  `;
+const PX_PER_MIN = 1.4;
+const CARD_COLORS = [
+  { border:'#3fae8c', bg:'#e3f5ee' },
+  { border:'#a25fc9', bg:'#f3e7fa' },
+  { border:'#d6567a', bg:'#fbe6ec' },
+  { border:'#4a86c9', bg:'#e6eefb' },
+  { border:'#7a9c4f', bg:'#eef4e5' },
+  { border:'#d69a3d', bg:'#faf0dd' },
+  { border:'#4fb0b8', bg:'#e3f6f7' },
+  { border:'#b0724f', bg:'#f5e9e0' }
+];
+function colorForBooking(b){
+  const key = bookingServiceList(b).map(s=>s.name).join('') || b.clientName || '';
+  let hash = 0;
+  for(let i=0;i<key.length;i++) hash = (hash*31 + key.charCodeAt(i)) >>> 0;
+  return CARD_COLORS[hash % CARD_COLORS.length];
+}
+function startOfWeek(d){
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = day===0 ? -6 : 1-day;
+  date.setDate(date.getDate()+diff);
+  date.setHours(0,0,0,0);
+  return date;
+}
+function renderWeekStrip(){
+  const el = document.getElementById('week-strip');
+  if(!el) return;
+  const monday = startOfWeek(agendaDate);
+  const todayIso = fmtDate(new Date());
+  const selIso = fmtDate(agendaDate);
+  const hours = getHours();
+  let html = '';
+  for(let i=0;i<7;i++){
+    const d = new Date(monday); d.setDate(monday.getDate()+i);
+    const iso = fmtDate(d);
+    const closed = hours[d.getDay()] && hours[d.getDay()].closed;
+    html += `<button class="wk-chip ${iso===selIso?'sel':''} ${closed?'closed':''}" onclick="setAgendaDate('${iso}')">
+      <span class="wk-dow">${DOW[d.getDay()]}</span>
+      <span class="wk-num">${d.getDate()}</span>
+      ${iso===todayIso?'<span class="wk-dot"></span>':''}
+    </button>`;
+  }
+  el.innerHTML = html;
 }
 function timeToMin(t){ const [h,m]=String(t).split(':').map(Number); return h*60+(m||0); }
 function minToTime(m){ const h=String(Math.floor(m/60)).padStart(2,'0'); const mm=String(m%60).padStart(2,'0'); return `${h}:${mm}`; }
@@ -492,44 +559,119 @@ function renderAgenda(){
   if(!labelEl) return;
   labelEl.textContent = fmtDateLabel(agendaDate);
   document.getElementById('agenda-date-pick').value = fmtDate(agendaDate);
+  renderWeekStrip();
+
   const iso = fmtDate(agendaDate);
-  const dayBookings = bookings
-    .filter(b=>b.date===iso)
-    .sort((a,b)=>a.time.localeCompare(b.time));
-
+  const dayIndex = agendaDate.getDay();
+  const day = getHours()[dayIndex];
   const emps = empList();
-  const slots = genTimeSlots(agendaDate.getDay());
-  const el = document.getElementById('agenda-list');
+  const headersEl = document.getElementById('cal-emp-headers');
+  const gridEl = document.getElementById('cal-grid');
+  headersEl.style.setProperty('--emp-count', emps.length);
+  gridEl.style.setProperty('--emp-count', emps.length);
 
-  if(slots.length===0){
-    el.innerHTML = `<div class="empty"><div class="big">Cerrado este día</div>Puedes cambiarlo en Servicios → Horario del centro</div>`;
+  if(!day || day.closed){
+    headersEl.innerHTML = '';
+    gridEl.innerHTML = `<div class="empty" style="padding:60px 20px"><div class="big">Cerrado este día</div>Puedes cambiarlo en Servicios → Horario del centro</div>`;
     return;
   }
 
-  el.innerHTML = emps.map(emp=>{
+  const startMinBase = timeToMin(day.open||'10:00');
+  const endMinBase = timeToMin(day.close||'20:00');
+  const dayBookings = bookings.filter(b=>b.date===iso).sort((a,b)=>a.time.localeCompare(b.time));
+  let startMin = startMinBase, endMin = endMinBase;
+  dayBookings.forEach(b=>{
+    const s = timeToMin(b.time);
+    const e = s + Number(b.duration||30);
+    if(s < startMin) startMin = s;
+    if(e > endMin) endMin = e;
+  });
+  const totalMin = Math.max(30, endMin-startMin);
+  const totalHeight = totalMin*PX_PER_MIN;
+  const slots = genTimeSlots(dayIndex);
+
+  headersEl.innerHTML = `<div class="cal-axis-spacer"></div>` + emps.map(emp=>{
+    const initial = (emp||'?').trim().charAt(0).toUpperCase() || '?';
+    return `<div class="cal-emp-head"><span class="emp-avatar">${escapeHtml(initial)}</span><div><b>${escapeHtml(emp)}</b><span>${day.open} - ${day.close}</span></div></div>`;
+  }).join('');
+
+  let axisHtml = `<div class="cal-axis" style="height:${totalHeight}px">`;
+  slots.forEach(t=>{
+    const m = timeToMin(t);
+    const top = (m-startMin)*PX_PER_MIN;
+    const isHour = m%60===0;
+    axisHtml += `<div class="cal-axis-mark ${isHour?'hour':''}" style="top:${top}px">${isHour ? t : t.split(':')[1]}</div>`;
+  });
+  axisHtml += `</div>`;
+
+  const colsHtml = emps.map(emp=>{
     const empBookings = dayBookings.filter(b=>(b.employee||emps[0])===emp);
-    let rowsHtml = '';
-    slots.forEach(slotTime=>{
-      const startingBooking = empBookings.find(b=>b.time===slotTime);
-      if(startingBooking){
-        rowsHtml += bookingItemHtml(startingBooking);
-        return;
-      }
-      const covered = empBookings.some(b=>{
-        if(b.status==='cancelada') return false;
-        const s=timeToMin(b.time), e=s+Number(b.duration||0), t=timeToMin(slotTime);
-        return t>s && t<e;
-      });
-      if(covered) return;
-      rowsHtml += `<button class="slot-empty" onclick="openManualBookingModal('${escapeHtml(emp).replace(/'/g,"\\'")}','${slotTime}')">
-        <span class="slot-time">${slotTime}</span><span class="slot-plus">＋ Agendar</span>
+    const linesHtml = slots.map(t=>{
+      const m = timeToMin(t);
+      const top = (m-startMin)*PX_PER_MIN;
+      const isHour = m%60===0;
+      return `<div class="cal-line ${isHour?'hour':''}" style="top:${top}px"></div>`;
+    }).join('');
+    const cardsHtml = empBookings.map(b=>{
+      const s = timeToMin(b.time);
+      const dur = Number(b.duration||30);
+      const top = (s-startMin)*PX_PER_MIN;
+      const height = Math.max(28, dur*PX_PER_MIN - 3);
+      const col = colorForBooking(b);
+      const svcNames = bookingServiceList(b).map(x=>x.name).join(' + ');
+      const cancelled = b.status==='cancelada';
+      return `<button class="cal-card ${cancelled?'cancelled':''}" style="top:${top}px;height:${height}px;border-color:${col.border};background:${col.bg}" onclick="event.stopPropagation();openBookingDetail('${b.id}')">
+        <span class="cal-card-time">${b.time} - ${minToTime(s+dur)}</span>
+        <span class="cal-card-name">${escapeHtml(b.clientName)}</span>
+        <span class="cal-card-svc">${escapeHtml(svcNames)}</span>
+        <span class="cal-card-icons">${b.notes?'💬':''}${b.paid?'€':''}</span>
       </button>`;
-    });
-    return `<div class="agenda-col">
-      <h4>${escapeHtml(emp)}</h4>
-      ${rowsHtml}
+    }).join('');
+    return `<div class="cal-col" style="height:${totalHeight}px" onclick="handleColClick(event,'${escapeHtml(emp).replace(/'/g,"\\'")}',${startMin})">
+      ${linesHtml}${cardsHtml}
     </div>`;
   }).join('');
+
+  gridEl.innerHTML = axisHtml + colsHtml;
+}
+function handleColClick(e, emp, startMin){
+  if(e.target.closest('.cal-card')) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const offsetY = e.clientY - rect.top;
+  let minutes = startMin + offsetY/PX_PER_MIN;
+  const step = Number(settings.slot||30) || 30;
+  minutes = Math.floor(minutes/step)*step;
+  openManualBookingModal(emp, minToTime(minutes));
+}
+function openBookingDetail(bookingId){
+  const b = bookings.find(x=>x.id===bookingId);
+  if(!b) return;
+  const root = document.getElementById('modal-root');
+  const svcNames = bookingServiceList(b).map(s=>s.name).join(' + ');
+  root.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal-box">
+        <h3 style="margin-bottom:4px">${escapeHtml(b.clientName)}</h3>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:14px">${b.date} · ${b.time} · ${escapeHtml(svcNames)} · ${euros(b.price)} · ${escapeHtml(b.clientPhone||'')}</p>
+        ${b.notes ? `<p style="font-style:italic;font-size:13px;margin-bottom:14px">"${escapeHtml(b.notes)}"</p>` : ''}
+        <div class="field"><label>Empleada</label>
+          <select onchange="changeBookingEmployee('${b.id}',this.value)">
+            ${empList().map(e=>`<option ${b.employee===e?'selected':''}>${escapeHtml(e)}</option>`).join('')}
+          </select>
+        </div>
+        <span class="status-badge status-${b.status}" style="display:inline-block;margin:4px 0 16px">${b.status}${b.paid?' · 💶 cobrado':''}</span>
+        <div class="row-btns" style="justify-content:flex-start;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="closeModal();openAddServiceModal('${b.id}')">＋ Servicio</button>
+          <button class="btn btn-ghost btn-sm" onclick="closeModal();openCobroModal('${b.id}')">€ Cobrar</button>
+          ${b.status==='confirmada' ? `<button class="btn btn-ghost btn-sm" onclick="setBookingStatus('${b.id}','completada');closeModal()">✓ Completar</button>` : ''}
+          ${b.status!=='cancelada' ? `<button class="btn btn-ghost btn-sm btn-danger" onclick="setBookingStatus('${b.id}','cancelada');closeModal()">✕ Cancelar</button>` : ''}
+        </div>
+        <div class="row-btns" style="margin-top:16px">
+          <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 async function setBookingStatus(id, status){
   try{
