@@ -478,9 +478,16 @@ function goToStep2(){
 }
 
 /* ============ EMPLEADAS (público) ============ */
+function normalizeEmployees(){
+  let emps = settings.employees;
+  if(!Array.isArray(emps) || emps.length===0){
+    emps = [{name:'Empleado 1',active:true},{name:'Empleado 2',active:true}];
+  }
+  return emps.map(e=> typeof e==='string' ? {name:e,active:true} : {name:e.name,active:e.active!==false}).filter(e=>e.name);
+}
 function empList(){
-  const emps = Array.isArray(settings.employees) && settings.employees.filter(Boolean).length===2 ? settings.employees : ['Empleada 1','Empleada 2'];
-  return emps;
+  const emps = normalizeEmployees().filter(e=>e.active).map(e=>e.name);
+  return emps.length ? emps : ['Empleado 1'];
 }
 function renderEmpFilter(){
   const el = document.getElementById('emp-filter');
