@@ -318,7 +318,17 @@ function escapeHtml(s){
 /* ============ STATE ============ */
 let services = [];
 let bookings = [];
-let settings = { open:'10:00', close:'20:00', slot:30, closedDays:[0], employees:['Empleada 1','Empleada 2'] };
+let settings = { schedule:null, slot:30, employees:['Empleada 1','Empleada 2'] };
+const DEFAULT_SCHEDULE = {
+  1: [{open:'16:00',close:'21:00'}],
+  2: [{open:'10:00',close:'14:00'},{open:'15:00',close:'21:00'}],
+  3: [{open:'10:00',close:'14:00'},{open:'15:00',close:'21:00'}],
+  4: [{open:'10:00',close:'14:00'},{open:'15:00',close:'21:00'}],
+  5: [{open:'10:00',close:'14:00'},{open:'15:00',close:'21:00'}],
+  6: [{open:'10:00',close:'14:00'},{open:'15:00',close:'21:00'}],
+};
+function daySchedule(dow){ return (settings.schedule && settings.schedule[dow]) || []; }
+function isDayClosed(dow){ return daySchedule(dow).length===0; }
 
 let bookingState = { serviceIds:[], date:null, time:null, employee:'cualquiera' };
 
@@ -350,6 +360,7 @@ function init(){
 
   setDoc.onSnapshot(doc=>{
     if(doc.exists) settings = { ...settings, ...doc.data() };
+    if(!settings.schedule) settings.schedule = JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
     renderDateStrip();
     renderSlots();
   }, err=>showToast('Error al leer horario'));
@@ -482,7 +493,7 @@ function renderDateStrip(){
   for(let i=0;i<14;i++){
     const d = new Date(today); d.setDate(d.getDate()+i);
     const iso = fmtDate(d);
-    const closed = (settings.closedDays||[]).includes(d.getDay());
+    const closed = isDayClosed(d.getDay());
     html += `<button class="date-chip ${bookingState.date===iso?'sel':''} ${closed?'closed':''}" onclick="selectDate('${iso}')">
       <div class="dow">${DOW[d.getDay()]}</div>
       <div class="num">${d.getDate()}</div>
@@ -515,8 +526,8 @@ function renderSlots(){
   if(!el) return;
   const chosen = chosenServices();
   if(chosen.length===0 || !bookingState.date){ el.innerHTML=''; return; }
-  const start = toMinutes(settings.open||'10:00');
-  const end = toMinutes(settings.close||'20:00');
+  const d = new Date(bookingState.date+'T00:00:00');
+  const ranges = daySchedule(d.getDay());
   const step = Number(settings.slot||30);
   const dur = chosen.reduce((a,s)=>a+Number(s.duration||30),0);
   const now = new Date();
@@ -528,19 +539,23 @@ function renderSlots(){
 
   let html = '';
   let any = false;
-  for(let t=start; t+dur<=end; t+=step){
-    const hhmm = toHHMM(t);
-    let free;
-    if(bookingState.employee && bookingState.employee!=='cualquiera'){
-      free = employeeFreeAt(bookingState.employee, t, dur, dayBookings);
-    } else {
-      free = emps.some(e=>employeeFreeAt(e, t, dur, dayBookings));
+  ranges.forEach(r=>{
+    const start = toMinutes(r.open);
+    const end = toMinutes(r.close);
+    for(let t=start; t+dur<=end; t+=step){
+      const hhmm = toHHMM(t);
+      let free;
+      if(bookingState.employee && bookingState.employee!=='cualquiera'){
+        free = employeeFreeAt(bookingState.employee, t, dur, dayBookings);
+      } else {
+        free = emps.some(e=>employeeFreeAt(e, t, dur, dayBookings));
+      }
+      const past = isToday && t <= nowMins;
+      const disabled = !free || past;
+      if(!disabled) any = true;
+      html += `<button class="slot-btn ${bookingState.time===hhmm?'sel':''}" ${disabled?'disabled':''} onclick="selectTime('${hhmm}')">${hhmm}</button>`;
     }
-    const past = isToday && t <= nowMins;
-    const disabled = !free || past;
-    if(!disabled) any = true;
-    html += `<button class="slot-btn ${bookingState.time===hhmm?'sel':''}" ${disabled?'disabled':''} onclick="selectTime('${hhmm}')">${hhmm}</button>`;
-  }
+  });
   el.innerHTML = any ? html : `<div class="empty" style="grid-column:1/-1">No quedan huecos este día. Prueba otra fecha.</div>`;
 }
 function selectTime(hhmm){
