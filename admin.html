@@ -391,12 +391,12 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
       <!-- SERVICIOS -->
       <div id="p-servicios" class="p-view hidden">
         <div class="card" style="margin-bottom:24px">
-          <h3 style="margin-bottom:16px">Barberos</h3>
+          <h3 style="margin-bottom:16px">Empleados</h3>
           <div class="settings-row">
-            <div class="field"><label>Barbero 1</label><input id="set-emp-0" placeholder="Ej. Marc"></div>
-            <div class="field"><label>Barbero 2</label><input id="set-emp-1" placeholder="Ej. Àlex"></div>
+            <div class="field"><label>Empleado 1</label><input id="set-emp-0" placeholder="Ej. Marc"></div>
+            <div class="field"><label>Empleado 2</label><input id="set-emp-1" placeholder="Ej. Àlex"></div>
           </div>
-          <button class="btn btn-dark btn-sm" onclick="saveEmployees()">Guardar barberos</button>
+          <button class="btn btn-dark btn-sm" onclick="saveEmployees()">Guardar empleados</button>
         </div>
 
         <div class="card" style="margin-bottom:24px">
@@ -501,7 +501,7 @@ const DEFAULT_SCHEDULE = {
   5: [{open:'10:00',close:'14:00'},{open:'15:00',close:'21:00'}],
   6: [{open:'10:00',close:'14:00'},{open:'15:00',close:'21:00'}],
 };
-let settings = { schedule: JSON.parse(JSON.stringify(DEFAULT_SCHEDULE)), slot:30, employees:['Barbero 1','Barbero 2'] };
+let settings = { schedule: JSON.parse(JSON.stringify(DEFAULT_SCHEDULE)), slot:30, employees:['Empleado 1','Empleado 2'] };
 function daySchedule(dow){ return (settings.schedule && settings.schedule[dow]) || []; }
 function isDayClosed(dow){ return daySchedule(dow).length===0; }
 function dayRangeSpan(dow){
@@ -643,7 +643,7 @@ function checkFactPin(){
   }
 }
 function empList(){
-  const emps = settings.employees && settings.employees.filter(Boolean).length===2 ? settings.employees : ['Barbero 1','Barbero 2'];
+  const emps = settings.employees && settings.employees.filter(Boolean).length===2 ? settings.employees : ['Empleado 1','Empleado 2'];
   return emps;
 }
 function renderEmpFilter(){
@@ -776,7 +776,7 @@ function openBookingDetail(bookingId){
         <div class="booking-detail-row"><span>Estado</span><span class="status-badge status-${b.status}">${b.status}</span></div>
         <div class="booking-detail-row"><span>Cobro</span><span>${b.paid ? `<span class="pay-badge ${b.paymentMethod==='tarjeta'?'tarjeta':''}">${b.paymentMethod==='tarjeta'?'💳 Tarjeta':'💶 Efectivo'} · ${euros(b.paidAmount)}</span>` : `<span style="color:var(--muted);font-style:italic">Pendiente</span>`}</span></div>
         <div class="field" style="margin-top:14px">
-          <label>Barbero</label>
+          <label>Empleado</label>
           <select onchange="changeBookingEmployee('${b.id}',this.value)">
             ${empList().map(e=>`<option value="${escapeHtml(e)}" ${b.employee===e?'selected':''}>${escapeHtml(e)}</option>`).join('')}
           </select>
@@ -804,16 +804,16 @@ async function setBookingStatus(id, status){
 async function changeBookingEmployee(id, employee){
   try{
     await bkCol.doc(id).update({ employee });
-    showToast('Barbero reasignado');
+    showToast('Empleado reasignado');
   }catch(e){ console.error(e); showToast('No se pudo reasignar'); }
 }
 async function saveEmployees(){
-  const e0 = document.getElementById('set-emp-0').value.trim() || 'Barbero 1';
-  const e1 = document.getElementById('set-emp-1').value.trim() || 'Barbero 2';
+  const e0 = document.getElementById('set-emp-0').value.trim() || 'Empleado 1';
+  const e1 = document.getElementById('set-emp-1').value.trim() || 'Empleado 2';
   try{
     await setDoc.set({ employees:[e0,e1] }, { merge:true });
-    showToast('Barberos guardados');
-  }catch(e){ console.error(e); showToast('No se pudieron guardar los barberos'); }
+    showToast('Empleados guardados');
+  }catch(e){ console.error(e); showToast('No se pudieron guardar los empleados'); }
 }
 
 /* ============ NUEVA CITA MANUAL (panel privado) ============ */
@@ -844,7 +844,7 @@ function openManualBookingModal(prefillTime, prefillEmployee){
           <div class="field"><label>Fecha</label><input type="date" id="mb-fecha" value="${fmtDate(agendaDate)}"></div>
           <div class="field"><label>Hora</label><input type="time" id="mb-hora" value="${prefillTime||''}"></div>
         </div>
-        <div class="field"><label>Barbero</label>
+        <div class="field"><label>Empleado</label>
           <select id="mb-barbero">${empList().map(e=>`<option value="${escapeHtml(e)}" ${e===prefillEmployee?'selected':''}>${escapeHtml(e)}</option>`).join('')}</select>
         </div>
         <div class="field"><label>Notas (opcional)</label><textarea id="mb-notas" rows="2"></textarea></div>
@@ -1216,7 +1216,7 @@ function csvEscape(v){
 function downloadClientsCsv(){
   if(clients.length===0){ showToast('No hay clientes para exportar'); return; }
   const rows = [];
-  rows.push(['Cliente','Teléfono','Email','Notas internas','Nº de citas','Total facturado (€)','Fecha cita','Hora','Servicios','Precio (€)','Barbero','Estado','Cobrado']);
+  rows.push(['Cliente','Teléfono','Email','Notas internas','Nº de citas','Total facturado (€)','Fecha cita','Hora','Servicios','Precio (€)','Empleado','Estado','Cobrado']);
   const sortedClients = [...clients].sort((a,b)=>a.name.localeCompare(b.name));
   sortedClients.forEach(c=>{
     const history = bookings.filter(b=>b.clientId===c.id).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
@@ -1341,7 +1341,7 @@ const SCHED_DAY_LABEL = { 0:'Domingo',1:'Lunes',2:'Martes',3:'Miércoles',4:'Jue
 
 function renderSettingsForm(){
   document.getElementById('set-slot').value = String(settings.slot||30);
-  const emps = settings.employees && settings.employees.length===2 ? settings.employees : ['Barbero 1','Barbero 2'];
+  const emps = settings.employees && settings.employees.length===2 ? settings.employees : ['Empleado 1','Empleado 2'];
   document.getElementById('set-emp-0').value = emps[0];
   document.getElementById('set-emp-1').value = emps[1];
 }
