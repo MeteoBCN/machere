@@ -469,22 +469,26 @@ function escapeHtml(s){
 
 /* ============ CATEGORÍAS Y DATOS POR DEFECTO ============ */
 const CATS = {
-  corte:        { label:'Cortes',        emoji:'✂' },
+  peluqueria:   { label:'Peluquería',    emoji:'💇' },
   barberia:     { label:'Barbería',      emoji:'🪒' },
-  combos:       { label:'Combos',        emoji:'⭐' },
-  tratamientos: { label:'Tratamientos',  emoji:'🌿' },
-  otros:        { label:'Extras',        emoji:'➕' },
-  productos:    { label:'Productos',     emoji:'🧴' },
+  unas:         { label:'Uñas',          emoji:'💅' },
+  estetica:     { label:'Estética',      emoji:'✨' },
+  micro:        { label:'Micro',         emoji:'🖊️' },
+  pestanas:     { label:'Pestañas',      emoji:'👁️' },
+  otros:        { label:'Otros',         emoji:'➕' },
+  extras:       { label:'Extras',        emoji:'⭐' },
 };
-const CATEGORY_ORDER = ['corte','barberia','combos','tratamientos','otros','productos'];
+const CATEGORY_ORDER = ['peluqueria','barberia','unas','estetica','micro','pestanas','otros','extras'];
 
 const SERVICIOS_DEFAULT = [
-  { nombre:'Corte de cabello',    cat:'corte',        precio:12, duracion:30, desc:'Corte clásico o moderno' },
-  { nombre:'Corte + Barba',       cat:'corte',        precio:18, duracion:45, desc:'Corte y arreglo de barba' },
-  { nombre:'Afeitado clásico',    cat:'barberia',     precio:10, duracion:20, desc:'Afeitado con navaja y toalla caliente' },
-  { nombre:'Arreglo de barba',    cat:'barberia',     precio:8,  duracion:15, desc:'Perfilado y definición' },
-  { nombre:'Tratamiento capilar', cat:'tratamientos', precio:20, duracion:30, desc:'Hidratación y nutrición' },
-  { nombre:'Combo completo',      cat:'combos',       precio:25, duracion:60, desc:'Corte + Barba + Tratamiento' },
+  { nombre:'Corte de cabello',       cat:'peluqueria', precio:12, duracion:30, desc:'Corte clásico o moderno' },
+  { nombre:'Peinado',                cat:'peluqueria', precio:15, duracion:30, desc:'Peinado y styling' },
+  { nombre:'Afeitado clásico',       cat:'barberia',   precio:10, duracion:20, desc:'Afeitado con navaja y toalla caliente' },
+  { nombre:'Arreglo de barba',       cat:'barberia',   precio:8,  duracion:15, desc:'Perfilado y definición' },
+  { nombre:'Manicura',               cat:'unas',       precio:15, duracion:40, desc:'Manicura completa' },
+  { nombre:'Limpieza facial',        cat:'estetica',   precio:25, duracion:45, desc:'Limpieza de cutis' },
+  { nombre:'Microblading',           cat:'micro',      precio:120,duracion:90, desc:'Micropigmentación de cejas' },
+  { nombre:'Lifting de pestañas',    cat:'pestanas',   precio:35, duracion:60, desc:'Lifting y tinte de pestañas' },
 ];
 
 const DOW = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
