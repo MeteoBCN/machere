@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RITUAL BARBER — Panel</title>
+<title>MA CHÈRE — Panel</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -292,7 +292,7 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
 <a href="index.html" class="back-bar"><span class="arrow">←</span> Volver a página principal</a>
 
 <div class="topbar">
-  <div class="logo">Ritual Barber · Panel</div>
+  <div class="logo">Ma Chère · Panel</div>
 </div>
 
 <main>
@@ -355,6 +355,7 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
               <label>Vista</label>
               <select id="fact-view" onchange="onFactViewChange()">
                 <option value="day">Por día</option>
+                <option value="week">Por semana</option>
                 <option value="month">Por mes</option>
                 <option value="all">Histórico completo</option>
               </select>
@@ -362,6 +363,10 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
             <div class="field" id="fact-day-field" style="max-width:180px">
               <label>Fecha</label>
               <input type="date" id="fact-date" onchange="renderFacturacion()">
+            </div>
+            <div class="field hidden" id="fact-week-field" style="max-width:180px">
+              <label>Semana</label>
+              <input type="week" id="fact-week" onchange="renderFacturacion()">
             </div>
             <div class="field hidden" id="fact-month-field" style="max-width:180px">
               <label>Mes</label>
@@ -436,12 +441,12 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
 <script>
 /* ============ FIREBASE ============ */
 const firebaseConfig = {
-  apiKey: "AIzaSyDWdZvqbCtMv-w_xHB_Pui69ywcrfqLM0Y",
-  authDomain: "ritualbarberagenda.firebaseapp.com",
-  projectId: "ritualbarberagenda",
-  storageBucket: "ritualbarberagenda.firebasestorage.app",
-  messagingSenderId: "79494512684",
-  appId: "1:79494512684:web:e4a615eebc1a8a2c1a1189"
+  apiKey: "AIzaSyB8VN6sm1XpBn4sTAVCHLMg5mrWaJObhkY",
+  authDomain: "machereagenda.firebaseapp.com",
+  projectId: "machereagenda",
+  storageBucket: "machereagenda.firebasestorage.app",
+  messagingSenderId: "264453428542",
+  appId: "1:264453428542:web:9e16d6e73dfbe240e6086f"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -1024,7 +1029,7 @@ function buildReceiptMessage(b){
   const svcNames = bookingServiceList(b).map(s=>s.name).join(', ');
   const total = euros(b.paidAmount ?? b.price);
   const metodo = b.paymentMethod==='tarjeta' ? 'Tarjeta' : 'Efectivo';
-  return `Hola ${b.clientName}! Aquí tienes tu recibo de RITUAL BARBER 💈\n\nServicio: ${svcNames}\nFecha: ${b.date} ${b.time||''}\nTotal: ${total}\nPago: ${metodo}\n\n¡Gracias por tu visita!`;
+  return `Hola ${b.clientName}! Aquí tienes tu recibo de MA CHÈRE 💈\n\nServicio: ${svcNames}\nFecha: ${b.date} ${b.time||''}\nTotal: ${total}\nPago: ${metodo}\n\n¡Gracias por tu visita!`;
 }
 function formatPhoneForWhatsapp(phone){
   let digits = (phone||'').replace(/[^\d+]/g,'');
@@ -1242,7 +1247,7 @@ function downloadClientsCsv(){
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `clientes_ritual_barber_${fmtDate(new Date())}.csv`;
+  a.download = `clientes_ma_chere_${fmtDate(new Date())}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -1381,6 +1386,7 @@ function initFacturacion(){
   if(!factInited){
     factInited = true;
     document.getElementById('fact-date').value = fmtDate(new Date());
+    document.getElementById('fact-week').value = fmtWeekInput(new Date());
     document.getElementById('fact-month').value = fmtDate(new Date()).slice(0,7);
   }
   renderFacturacion();
@@ -1394,14 +1400,41 @@ function populateFactEmpSelect(){
 function onFactViewChange(){
   const view = document.getElementById('fact-view').value;
   document.getElementById('fact-day-field').classList.toggle('hidden', view!=='day');
+  document.getElementById('fact-week-field').classList.toggle('hidden', view!=='week');
   document.getElementById('fact-month-field').classList.toggle('hidden', view!=='month');
   renderFacturacion();
+}
+function fmtWeekInput(d){
+  const date = new Date(d.getTime());
+  date.setHours(0,0,0,0);
+  date.setDate(date.getDate() + 3 - ((date.getDay()+6)%7));
+  const week1 = new Date(date.getFullYear(),0,4);
+  const weekNum = 1 + Math.round(((date-week1)/86400000 - 3 + ((week1.getDay()+6)%7))/7);
+  return `${date.getFullYear()}-W${String(weekNum).padStart(2,'0')}`;
+}
+function weekRange(weekStr){
+  if(!weekStr) return null;
+  const [yearStr, weekStr2] = weekStr.split('-W');
+  const year = Number(yearStr), week = Number(weekStr2);
+  const jan4 = new Date(year,0,4);
+  const mondayW1 = new Date(jan4.getTime());
+  mondayW1.setDate(jan4.getDate() - ((jan4.getDay()+6)%7));
+  const start = new Date(mondayW1.getTime());
+  start.setDate(mondayW1.getDate() + (week-1)*7);
+  const end = new Date(start.getTime());
+  end.setDate(start.getDate()+6);
+  return { start: fmtDate(start), end: fmtDate(end) };
 }
 function factDateInRange(dateStr){
   const view = document.getElementById('fact-view').value;
   if(view==='day'){
     const d = document.getElementById('fact-date').value;
     return !d || dateStr===d;
+  }
+  if(view==='week'){
+    const w = document.getElementById('fact-week').value;
+    const r = weekRange(w);
+    return !r || (dateStr>=r.start && dateStr<=r.end);
   }
   if(view==='month'){
     const m = document.getElementById('fact-month').value;
