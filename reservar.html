@@ -458,14 +458,19 @@ function updateSvcSelectionBar(){
 }
 function goToStep2(){
   if(bookingState.serviceIds.length===0){ showToast('Elige al menos un servicio'); return; }
-  renderEmpFilter();
-  renderDateStrip();
-  goStep(2);
+  try{
+    renderEmpFilter();
+    renderDateStrip();
+    goStep(2);
+  }catch(e){
+    console.error('Error en goToStep2:', e);
+    showToast('No se pudo continuar: '+e.message);
+  }
 }
 
 /* ============ EMPLEADAS (público) ============ */
 function empList(){
-  const emps = settings.employees && settings.employees.filter(Boolean).length===2 ? settings.employees : ['Empleada 1','Empleada 2'];
+  const emps = Array.isArray(settings.employees) && settings.employees.filter(Boolean).length===2 ? settings.employees : ['Empleada 1','Empleada 2'];
   return emps;
 }
 function renderEmpFilter(){
