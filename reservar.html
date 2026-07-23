@@ -333,7 +333,18 @@ function isDayClosed(dow){ return daySchedule(dow).length===0; }
 let bookingState = { serviceIds:[], date:null, time:null, employee:'cualquiera' };
 
 const DOW = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-const CATEGORIES = ['Peluquería','Barbería','Tratamientos faciales','Tratamientos corporales','Masajes','Manicura','Pedicura','Pestañas','Micropigmentación','Depilación láser','Depilación cera','Depilación hilo'];
+const CATS = {
+  peluqueria:   { label:'Peluquería' },
+  barberia:     { label:'Barbería' },
+  unas:         { label:'Uñas' },
+  estetica:     { label:'Estética' },
+  micro:        { label:'Micro' },
+  pestanas:     { label:'Pestañas' },
+  otros:        { label:'Otros' },
+  extras:       { label:'Extras' },
+};
+const CATEGORY_ORDER = ['peluqueria','barberia','unas','estetica','micro','pestanas','otros','extras'];
+function catLabel(cat){ return (CATS[cat] && CATS[cat].label) || 'Otros'; }
 let categoryFilter = 'todas';
 function fmtDate(d){
   const y = d.getFullYear();
@@ -346,7 +357,7 @@ function fmtDateLabel(d){ return d.toLocaleDateString('es-ES',{weekday:'long',da
 /* ============ INIT (Firestore en tiempo real) ============ */
 function init(){
   svcCol.onSnapshot(snap=>{
-    services = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    services = snap.docs.map(d=>({ id:d.id, ...d.data() })).filter(s=>s.publico!==false);
     renderCatFilter();
     renderServiceCards();
     updateSvcSelectionBar();
@@ -383,12 +394,11 @@ function goStep(n){
 function renderCatFilter(){
   const el = document.getElementById('cat-filter');
   if(!el) return;
-  const present = CATEGORIES.filter(c=>services.some(s=>(s.category||'Otros')===c));
-  if(services.some(s=>!s.category)) present.push('Otros');
+  const present = CATEGORY_ORDER.filter(c=>services.some(s=>(s.cat||'otros')===c));
   if(present.length===0){ el.innerHTML=''; return; }
   const chips = ['todas', ...present];
   el.innerHTML = chips.map(c=>`
-    <button class="cat-chip ${categoryFilter===c?'sel':''}" onclick="setCategoryFilter('${c.replace(/'/g,"\\'")}')">${c==='todas'?'Todas':c}</button>
+    <button class="cat-chip ${categoryFilter===c?'sel':''}" onclick="setCategoryFilter('${c.replace(/'/g,"\\'")}')">${c==='todas'?'Todas':catLabel(c)}</button>
   `).join('');
 }
 function setCategoryFilter(c){
@@ -405,31 +415,30 @@ function renderServiceCards(){
   const cardHtml = s => `
     <button class="svc-card ${bookingState.serviceIds.includes(s.id)?'sel':''}" onclick="selectService('${s.id}')">
       <span class="check">✓</span>
-      <div class="cat-tag">${escapeHtml(s.category||'Otros')}</div>
-      <h4>${escapeHtml(s.name)}</h4>
-      <div class="dur">${s.duration} min</div>
-      <div class="price">${euros(s.price)}</div>
+      <div class="cat-tag">${escapeHtml(catLabel(s.cat))}</div>
+      <h4>${escapeHtml(s.nombre)}</h4>
+      <div class="dur">${s.duracion} min</div>
+      <div class="price">${euros(s.precio)}</div>
     </button>
   `;
 
   if(categoryFilter !== 'todas'){
-    const filtered = services.filter(s=>(s.category||'Otros')===categoryFilter);
+    const filtered = services.filter(s=>(s.cat||'otros')===categoryFilter);
     el.innerHTML = filtered.length
       ? `<div class="card-grid">${filtered.map(cardHtml).join('')}</div>`
       : `<div class="empty" style="grid-column:1/-1">No hay servicios en esta categoría</div>`;
     return;
   }
 
-  const order = [...CATEGORIES, 'Otros'];
   const grouped = {};
   services.forEach(s=>{
-    const cat = s.category || 'Otros';
+    const cat = s.cat || 'otros';
     (grouped[cat] = grouped[cat] || []).push(s);
   });
-  const cats = order.filter(c=>grouped[c] && grouped[c].length);
+  const cats = CATEGORY_ORDER.filter(c=>grouped[c] && grouped[c].length);
   el.innerHTML = cats.map(cat => `
     <div class="cat-group">
-      <h3>${cat}</h3>
+      <h3>${catLabel(cat)}</h3>
       <div class="card-grid">${grouped[cat].map(cardHtml).join('')}</div>
     </div>
   `).join('');
@@ -450,8 +459,8 @@ function updateSvcSelectionBar(){
     sumEl.textContent = 'Elige uno o varios servicios';
     btn.disabled = true;
   } else {
-    const totalDur = chosen.reduce((a,s)=>a+Number(s.duration||0),0);
-    const totalPrice = chosen.reduce((a,s)=>a+Number(s.price||0),0);
+    const totalDur = chosen.reduce((a,s)=>a+Number(s.duracion||0),0);
+    const totalPrice = chosen.reduce((a,s)=>a+Number(s.precio||0),0);
     sumEl.innerHTML = `${chosen.length} servicio${chosen.length===1?'':'s'} · ${totalDur} min · <b>${euros(totalPrice)}</b>`;
     btn.disabled = false;
   }
@@ -534,7 +543,7 @@ function renderSlots(){
   const d = new Date(bookingState.date+'T00:00:00');
   const ranges = daySchedule(d.getDay());
   const step = Number(settings.slot||30);
-  const dur = chosen.reduce((a,s)=>a+Number(s.duration||30),0);
+  const dur = chosen.reduce((a,s)=>a+Number(s.duracion||30),0);
   const now = new Date();
   const isToday = bookingState.date === fmtDate(now);
   const nowMins = now.getHours()*60+now.getMinutes();
@@ -568,8 +577,8 @@ function selectTime(hhmm){
   renderSlots();
   const chosen = chosenServices();
   const d = new Date(bookingState.date+'T00:00:00');
-  const totalPrice = chosen.reduce((a,s)=>a+Number(s.price||0),0);
-  const names = chosen.map(s=>s.name).join(', ');
+  const totalPrice = chosen.reduce((a,s)=>a+Number(s.precio||0),0);
+  const names = chosen.map(s=>s.nombre).join(', ');
   const empLabel = (bookingState.employee && bookingState.employee!=='cualquiera') ? ` · ${bookingState.employee}` : '';
   document.getElementById('book-summary').innerHTML =
     `<b>${escapeHtml(names)}</b> · ${fmtDateLabel(d)} a las ${hhmm}${empLabel} · ${euros(totalPrice)}`;
@@ -599,9 +608,9 @@ async function confirmarReserva(){
       await cliCol.doc(clientId).update({ name:nombre, ...(email?{email}:{}) });
     }
 
-    const totalPrice = chosen.reduce((a,s)=>a+Number(s.price||0),0);
-    const totalDuration = chosen.reduce((a,s)=>a+Number(s.duration||0),0);
-    const serviceNames = chosen.map(s=>s.name).join(', ');
+    const totalPrice = chosen.reduce((a,s)=>a+Number(s.precio||0),0);
+    const totalDuration = chosen.reduce((a,s)=>a+Number(s.duracion||0),0);
+    const serviceNames = chosen.map(s=>s.nombre).join(', ');
     const dayBookings = bookings.filter(b=>b.date===bookingState.date && b.status!=='cancelada');
     const t = toMinutes(bookingState.time);
     let employee = bookingState.employee;
@@ -613,7 +622,7 @@ async function confirmarReserva(){
       clientId,
       clientName: nombre,
       clientPhone: telefono,
-      services: chosen.map(s=>({ id:s.id, name:s.name, price:s.price, duration:s.duration })),
+      services: chosen.map(s=>({ id:s.id, name:s.nombre, price:s.precio, duration:s.duracion })),
       serviceName: serviceNames,
       price: totalPrice,
       date: bookingState.date,
