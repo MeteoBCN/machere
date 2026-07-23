@@ -161,6 +161,7 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
 
 /* SERVICES ADMIN */
 .svc-row{display:grid;grid-template-columns:1.5fr 1.2fr 0.7fr 0.7fr 1fr auto;gap:12px;align-items:center;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:var(--ivory);margin-bottom:8px}
+.emp-row{grid-template-columns:1.8fr 1fr auto}
 .svc-row input,.svc-row select{padding:8px 10px}
 .svc-visibility{display:flex;align-items:center;gap:8px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--muted);white-space:nowrap}
 .svc-visibility input{width:auto;margin:0}
@@ -282,7 +283,7 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
 @media(max-width:640px){
   .two-col{grid-template-columns:1fr}
   .grid3{grid-template-columns:1fr}
-  .svc-row{grid-template-columns:1fr 1fr}
+  .svc-row,.emp-row{grid-template-columns:1fr 1fr}
   .topbar{padding:14px 16px}
   main{padding:24px 14px 90px}
 }
@@ -392,11 +393,11 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
       <div id="p-servicios" class="p-view hidden">
         <div class="card" style="margin-bottom:24px">
           <h3 style="margin-bottom:16px">Empleados</h3>
-          <div class="settings-row">
-            <div class="field"><label>Empleado 1</label><input id="set-emp-0" placeholder="Ej. Marc"></div>
-            <div class="field"><label>Empleado 2</label><input id="set-emp-1" placeholder="Ej. Àlex"></div>
+          <div id="emp-admin-list"></div>
+          <div class="settings-row" style="margin-top:12px">
+            <div class="field"><label>Nuevo empleado</label><input id="new-emp-nombre" placeholder="Ej. Marc" onkeydown="if(event.key==='Enter'){event.preventDefault();addEmpleado();}"></div>
           </div>
-          <button class="btn btn-dark btn-sm" onclick="saveEmployees()">Guardar empleados</button>
+          <button class="btn btn-gold btn-sm" onclick="addEmpleado()">＋ Añadir empleado</button>
         </div>
 
         <div class="card" style="margin-bottom:24px">
@@ -505,7 +506,7 @@ const DEFAULT_SCHEDULE = {
   5: [{open:'10:00',close:'14:00'},{open:'15:00',close:'21:00'}],
   6: [{open:'10:00',close:'14:00'},{open:'15:00',close:'21:00'}],
 };
-let settings = { schedule: JSON.parse(JSON.stringify(DEFAULT_SCHEDULE)), slot:30, employees:['Empleado 1','Empleado 2'] };
+let settings = { schedule: JSON.parse(JSON.stringify(DEFAULT_SCHEDULE)), slot:30, employees:[{name:'Empleado 1',active:true},{name:'Empleado 2',active:true}] };
 function daySchedule(dow){ return (settings.schedule && settings.schedule[dow]) || []; }
 function isDayClosed(dow){ return daySchedule(dow).length===0; }
 function dayRangeSpan(dow){
@@ -646,9 +647,20 @@ function checkFactPin(){
     document.getElementById('fact-pin-input').focus();
   }
 }
+function normalizeEmployees(){
+  let emps = settings.employees;
+  if(!Array.isArray(emps) || emps.length===0){
+    emps = [{name:'Empleado 1',active:true},{name:'Empleado 2',active:true}];
+  }
+  return emps.map(e=> typeof e==='string' ? {name:e,active:true} : {name:e.name,active:e.active!==false}).filter(e=>e.name);
+}
 function empList(){
-  const emps = settings.employees && settings.employees.filter(Boolean).length===2 ? settings.employees : ['Empleado 1','Empleado 2'];
-  return emps;
+  const emps = normalizeEmployees().filter(e=>e.active).map(e=>e.name);
+  return emps.length ? emps : ['Empleado 1'];
+}
+function allEmpNames(){
+  const emps = normalizeEmployees().map(e=>e.name);
+  return emps.length ? emps : ['Empleado 1'];
 }
 function renderEmpFilter(){
   const el = document.getElementById('emp-filter');
@@ -782,7 +794,7 @@ function openBookingDetail(bookingId){
         <div class="field" style="margin-top:14px">
           <label>Empleado</label>
           <select onchange="changeBookingEmployee('${b.id}',this.value)">
-            ${empList().map(e=>`<option value="${escapeHtml(e)}" ${b.employee===e?'selected':''}>${escapeHtml(e)}</option>`).join('')}
+            ${Array.from(new Set([...empList(), ...(b.employee?[b.employee]:[])])).map(e=>`<option value="${escapeHtml(e)}" ${b.employee===e?'selected':''}>${escapeHtml(e)}</option>`).join('')}
           </select>
         </div>
         <div class="row-btns" style="margin-top:18px">
@@ -811,15 +823,6 @@ async function changeBookingEmployee(id, employee){
     showToast('Empleado reasignado');
   }catch(e){ console.error(e); showToast('No se pudo reasignar'); }
 }
-async function saveEmployees(){
-  const e0 = document.getElementById('set-emp-0').value.trim() || 'Empleado 1';
-  const e1 = document.getElementById('set-emp-1').value.trim() || 'Empleado 2';
-  try{
-    await setDoc.set({ employees:[e0,e1] }, { merge:true });
-    showToast('Empleados guardados');
-  }catch(e){ console.error(e); showToast('No se pudieron guardar los empleados'); }
-}
-
 /* ============ NUEVA CITA MANUAL (panel privado) ============ */
 let mbCatFilter = 'todas';
 function openManualBookingModal(prefillTime, prefillEmployee){
@@ -1345,9 +1348,61 @@ const SCHED_DAY_LABEL = { 0:'Domingo',1:'Lunes',2:'Martes',3:'Miércoles',4:'Jue
 
 function renderSettingsForm(){
   document.getElementById('set-slot').value = String(settings.slot||30);
-  const emps = settings.employees && settings.employees.length===2 ? settings.employees : ['Empleado 1','Empleado 2'];
-  document.getElementById('set-emp-0').value = emps[0];
-  document.getElementById('set-emp-1').value = emps[1];
+  renderEmpAdminList();
+}
+function renderEmpAdminList(){
+  const el = document.getElementById('emp-admin-list');
+  if(!el) return;
+  const emps = normalizeEmployees();
+  if(emps.length===0){
+    el.innerHTML = `<div class="empty"><div class="big">Todavía no has añadido empleados</div>Añade el primero abajo</div>`;
+    return;
+  }
+  el.innerHTML = emps.map((e,i)=>`
+    <div class="svc-row emp-row">
+      <input value="${escapeHtml(e.name)}" onchange="updateEmpField(${i},'name',this.value)">
+      <label class="svc-visibility ${e.active?'':'is-interno'}" title="Desactiva un empleado para que no aparezca en la agenda ni al reservar citas nuevas, sin perder su historial">
+        <input type="checkbox" ${e.active?'checked':''} onchange="updateEmpField(${i},'active',this.checked)">
+        ${e.active?'Activo':'Inactivo'}
+      </label>
+      <button class="icon-btn btn-danger" title="Eliminar" onclick="deleteEmpleado(${i})">✕</button>
+    </div>
+  `).join('');
+}
+async function updateEmpField(index, field, value){
+  const emps = normalizeEmployees();
+  if(!emps[index]) return;
+  if(field==='name'){
+    value = value.trim();
+    if(!value){ renderEmpAdminList(); return; }
+  }
+  emps[index][field] = value;
+  try{
+    await setDoc.set({ employees: emps }, { merge:true });
+    showToast('Empleados actualizados');
+  }catch(e){ console.error(e); showToast('No se pudo actualizar'); }
+}
+async function addEmpleado(){
+  const input = document.getElementById('new-emp-nombre');
+  const nombre = input.value.trim();
+  if(!nombre){ showToast('Escribe un nombre'); return; }
+  const emps = normalizeEmployees();
+  emps.push({ name:nombre, active:true });
+  try{
+    await setDoc.set({ employees: emps }, { merge:true });
+    input.value = '';
+    showToast('Empleado añadido');
+  }catch(e){ console.error(e); showToast('No se pudo añadir el empleado'); }
+}
+async function deleteEmpleado(index){
+  const emps = normalizeEmployees();
+  if(!emps[index]) return;
+  if(emps.length<=1){ showToast('Debe quedar al menos un empleado'); return; }
+  emps.splice(index,1);
+  try{
+    await setDoc.set({ employees: emps }, { merge:true });
+    showToast('Empleado eliminado');
+  }catch(e){ console.error(e); showToast('No se pudo eliminar'); }
 }
 function renderScheduleForm(){
   const el = document.getElementById('schedule-form');
@@ -1398,7 +1453,7 @@ function initFacturacion(){
 function populateFactEmpSelect(){
   const sel = document.getElementById('fact-emp');
   const current = sel.value;
-  sel.innerHTML = '<option value="">Todos</option>' + empList().map(e=>`<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('');
+  sel.innerHTML = '<option value="">Todos</option>' + allEmpNames().map(e=>`<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('');
   sel.value = current;
 }
 function onFactViewChange(){
