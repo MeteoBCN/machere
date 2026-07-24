@@ -510,9 +510,15 @@ let settings = { schedule: JSON.parse(JSON.stringify(DEFAULT_SCHEDULE)), slot:30
 function daySchedule(dow){ return (settings.schedule && settings.schedule[dow]) || []; }
 function isDayClosed(dow){ return daySchedule(dow).length===0; }
 function dayRangeSpan(dow){
-  const ranges = daySchedule(dow);
+  const ranges = daySchedule(dow).filter(r=>r.open && r.close && r.open!==r.close);
   if(!ranges.length) return null;
-  return { start: ranges[0].open, end: ranges[ranges.length-1].close };
+  const toMin = t=>{ const [h,m]=t.split(':').map(Number); return h*60+m; };
+  let start = ranges[0].open, end = ranges[0].close;
+  ranges.forEach(r=>{
+    if(toMin(r.open) < toMin(start)) start = r.open;
+    if(toMin(r.close) > toMin(end)) end = r.close;
+  });
+  return { start, end };
 }
 let categoryFilter = 'todas';
 let svcAdminCatFilter = 'todas';
@@ -1578,8 +1584,8 @@ async function saveSettings(){
     const c0 = document.getElementById(`sched-${d}-0-close`).value;
     const o1 = document.getElementById(`sched-${d}-1-open`).value;
     const c1 = document.getElementById(`sched-${d}-1-close`).value;
-    if(o0 && c0) ranges.push({ open:o0, close:c0 });
-    if(o1 && c1) ranges.push({ open:o1, close:c1 });
+    if(o0 && c0 && o0!==c0) ranges.push({ open:o0, close:c0 });
+    if(o1 && c1 && o1!==c1) ranges.push({ open:o1, close:c1 });
     schedule[d] = ranges;
   });
   try{
