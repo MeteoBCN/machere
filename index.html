@@ -131,10 +131,9 @@ nav{position:sticky;top:0;left:0;right:0;z-index:200;padding:24px 70px;display:f
 .reserva-wrap{min-height:300px;display:flex;align-items:flex-start;justify-content:center}
 
 /* MAP */
-.mapzone{height:380px;background:var(--ivory);display:flex;align-items:center;justify-content:center;border-top:1px solid var(--border)}
-.mapzone-inner{text-align:center}
-.mapzone-inner p{font-family:'Playfair Display',serif;font-size:20px;font-weight:300;font-style:italic;color:var(--muted);margin-bottom:10px}
-.mapzone-inner span{font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-weight:300}
+.mapzone{padding:60px 70px;background:var(--ivory);display:flex;align-items:center;justify-content:center;border-top:1px solid var(--border)}
+.mapzone-frame{width:100%;max-width:1100px;border:1px solid var(--gold);box-shadow:0 0 0 8px var(--cream),0 12px 40px rgba(160,120,64,.22);position:relative}
+.mapzone-frame iframe{display:block;width:100%;height:420px;border:0;filter:sepia(.55) saturate(1.5) hue-rotate(-10deg) brightness(.96) contrast(1.02)}
 
 /* FOOTER */
 footer{background:var(--dark);padding:80px 70px 44px}
@@ -248,7 +247,8 @@ footer{background:var(--dark);padding:80px 70px 44px}
   .fgrow{grid-template-columns:1fr}
 
   /* Map */
-  .mapzone{height:260px}
+  .mapzone{padding:36px 24px}
+  .mapzone-frame iframe{height:280px}
 
   /* Footer */
   footer{padding:56px 24px 32px}
@@ -386,16 +386,15 @@ footer{background:var(--dark);padding:80px 70px 44px}
       </div>
     </div>
   </div>
-  <div class="reserva-wrap rv" id="reserva">
+  <div class="reserva-wrap rv" id="reserva" style="margin-bottom:40px">
     <a href="https://machere.es/reservar.html" class="btn-primary">Reservar cita</a>
   </div>
 </section>
 
-<!-- MAP PLACEHOLDER -->
+<!-- MAP -->
 <div class="mapzone">
-  <div class="mapzone-inner">
-    <p>Travessera de les Corts, 285 · Barcelona</p>
-    <span>· Aquí puedes insertar tu mapa de Google Maps ·</span>
+  <div class="mapzone-frame rv">
+    <iframe src="https://www.google.com/maps?q=Carrer+Travessera+de+les+Corts,+285,+08014+Barcelona&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen title="Ubicación Ma Chère"></iframe>
   </div>
 </div>
 </footer>
