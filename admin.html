@@ -228,6 +228,8 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
 .tl-hourline.tl-hourline-solid{opacity:.9}
 .tl-slot-cell{cursor:pointer}
 .tl-slot-cell:hover{background:rgba(204,181,127,0.16)}
+.tl-slot-cell.closed{cursor:not-allowed;background:repeating-linear-gradient(45deg,rgba(26,45,39,0.05),rgba(26,45,39,0.05) 6px,transparent 6px,transparent 12px)}
+.sched-emp-note{font-size:12px;color:var(--muted);font-style:italic;margin-bottom:14px}
 .tl-card{background:var(--cream);border:1px solid var(--border);border-left:4px solid var(--gold2);border-radius:8px;padding:6px 9px;margin:1px 4px;overflow:hidden;font-size:11.5px;cursor:pointer;box-shadow:0 1px 3px rgba(26,45,39,.08);transition:all .15s;line-height:1.3}
 .tl-card:hover{border-color:var(--gold);transform:translateY(-1px)}
 .tl-card b{display:block;font-size:12.5px;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -401,16 +403,24 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
         </div>
 
         <div class="card" style="margin-bottom:24px">
-          <h3 style="margin-bottom:16px">Horario de la barbería</h3>
+          <h3 style="margin-bottom:16px">Horario</h3>
           <div class="field" style="max-width:220px">
             <label>Duración de turno (huecos)</label>
             <select id="set-slot"><option value="15">15 min</option><option value="30">30 min</option><option value="60">60 min</option></select>
           </div>
           <div class="field" style="margin-top:6px">
+            <label>Editando horario de</label>
+            <div id="sched-emp-tabs" class="cat-filter" style="justify-content:flex-start;margin-bottom:8px"></div>
+            <p id="sched-emp-note" class="sched-emp-note"></p>
+          </div>
+          <div class="field" style="margin-top:6px">
             <label>Horario por día (deja el turno tarde vacío si el día solo tiene un turno)</label>
             <div id="schedule-form"></div>
           </div>
-          <button class="btn btn-dark btn-sm" onclick="saveSettings()">Guardar horario</button>
+          <div class="row-btns" style="justify-content:flex-start;margin-top:16px">
+            <button class="btn btn-dark btn-sm" onclick="saveSettings()">Guardar horario</button>
+            <button class="btn btn-ghost btn-sm hidden" id="sched-reset-btn" onclick="resetEmpSchedule()">↺ Usar horario general</button>
+          </div>
         </div>
 
         <h3 style="margin-bottom:14px">Servicios y precios</h3>
@@ -507,10 +517,32 @@ const DEFAULT_SCHEDULE = {
   6: [{open:'10:00',close:'14:00'},{open:'15:00',close:'21:00'}],
 };
 let settings = { schedule: JSON.parse(JSON.stringify(DEFAULT_SCHEDULE)), slot:30, employees:[{name:'Empleado 1',active:true},{name:'Empleado 2',active:true}] };
-function daySchedule(dow){ return (settings.schedule && settings.schedule[dow]) || []; }
-function isDayClosed(dow){ return daySchedule(dow).length===0; }
+function employeeSchedule(name){
+  const e = normalizeEmployees().find(x=>x.name===name);
+  if(e && e.schedule) return e.schedule;
+  return settings.schedule || DEFAULT_SCHEDULE;
+}
+function daySchedule(dow, emp){
+  if(emp && emp!=='__general__'){
+    const sched = employeeSchedule(emp);
+    return (sched && sched[dow]) || [];
+  }
+  return (settings.schedule && settings.schedule[dow]) || [];
+}
+function isDayClosed(dow, emp){ return daySchedule(dow, emp).length===0; }
+function minuteOpenForEmp(emp, dow, minutes){
+  const toMin = t=>{ const [h,m]=t.split(':').map(Number); return h*60+m; };
+  return daySchedule(dow, emp).some(r=>r.open && r.close && minutes>=toMin(r.open) && minutes<toMin(r.close));
+}
 function dayRangeSpan(dow){
-  const ranges = daySchedule(dow).filter(r=>r.open && r.close && r.open!==r.close);
+  const emps = empList();
+  let ranges = [];
+  if(emps.length){
+    emps.forEach(e=>{ ranges = ranges.concat(daySchedule(dow, e)); });
+  } else {
+    ranges = daySchedule(dow);
+  }
+  ranges = ranges.filter(r=>r.open && r.close && r.open!==r.close);
   if(!ranges.length) return null;
   const toMin = t=>{ const [h,m]=t.split(':').map(Number); return h*60+m; };
   let start = ranges[0].open, end = ranges[0].close;
@@ -658,7 +690,7 @@ function normalizeEmployees(){
   if(!Array.isArray(emps) || emps.length===0){
     emps = [{name:'Empleado 1',active:true},{name:'Empleado 2',active:true}];
   }
-  return emps.map(e=> typeof e==='string' ? {name:e,active:true} : {name:e.name,active:e.active!==false}).filter(e=>e.name);
+  return emps.map(e=> typeof e==='string' ? {name:e,active:true,schedule:null} : {name:e.name,active:e.active!==false,schedule:e.schedule||null}).filter(e=>e.name);
 }
 function empList(){
   const emps = normalizeEmployees().filter(e=>e.active).map(e=>e.name);
@@ -757,7 +789,12 @@ function renderAgenda(){
       const minutes = openMinutes + r*SLOT_MIN;
       const hh = String(Math.floor(minutes/60)).padStart(2,'0');
       const mm = String(minutes%60).padStart(2,'0');
-      html += `<div class="tl-slot-cell" style="grid-row:${r+1};grid-column:${i+2}" onclick="openManualBookingModal('${hh}:${mm}','${escapeHtml(emp).replace(/'/g,"\\'")}')" title="Nueva cita a las ${hh}:${mm} con ${escapeHtml(emp)}"></div>`;
+      const empOpen = minuteOpenForEmp(emp, dow, minutes);
+      if(empOpen){
+        html += `<div class="tl-slot-cell" style="grid-row:${r+1};grid-column:${i+2}" onclick="openManualBookingModal('${hh}:${mm}','${escapeHtml(emp).replace(/'/g,"\\'")}')" title="Nueva cita a las ${hh}:${mm} con ${escapeHtml(emp)}"></div>`;
+      } else {
+        html += `<div class="tl-slot-cell closed" style="grid-row:${r+1};grid-column:${i+2}" title="${escapeHtml(emp)} no trabaja a esta hora"></div>`;
+      }
     }
   });
 
@@ -1352,9 +1389,54 @@ async function addServicio(){
 const SCHED_DAY_ORDER = [1,2,3,4,5,6,0]; // Lunes...Domingo
 const SCHED_DAY_LABEL = { 0:'Domingo',1:'Lunes',2:'Martes',3:'Miércoles',4:'Jueves',5:'Viernes',6:'Sábado' };
 
+let schedEmpTarget = '__general__';
 function renderSettingsForm(){
   document.getElementById('set-slot').value = String(settings.slot||30);
   renderEmpAdminList();
+  renderSchedEmpTabs();
+  renderScheduleForm();
+}
+function renderSchedEmpTabs(){
+  const el = document.getElementById('sched-emp-tabs');
+  const note = document.getElementById('sched-emp-note');
+  const resetBtn = document.getElementById('sched-reset-btn');
+  if(!el) return;
+  const emps = normalizeEmployees();
+  if(schedEmpTarget!=='__general__' && !emps.some(e=>e.name===schedEmpTarget)){
+    schedEmpTarget = '__general__';
+  }
+  const options = [{key:'__general__', label:'General'}, ...emps.map(e=>({key:e.name, label:e.name}))];
+  el.innerHTML = options.map(o=>`
+    <button class="cat-chip ${schedEmpTarget===o.key?'sel':''}" onclick="switchSchedEmp('${o.key.replace(/'/g,"\\'")}')">${escapeHtml(o.label)}</button>
+  `).join('');
+  if(note){
+    if(schedEmpTarget==='__general__'){
+      note.textContent = 'Horario base del negocio. Sirve de plantilla para empleadas sin horario propio.';
+    } else {
+      const e = emps.find(x=>x.name===schedEmpTarget);
+      note.textContent = (e && e.schedule) ? `Horario propio de ${schedEmpTarget}.` : `${schedEmpTarget} usa el horario general (todavía no tiene uno propio). Guarda para personalizarlo.`;
+    }
+  }
+  if(resetBtn){
+    const e = emps.find(x=>x.name===schedEmpTarget);
+    resetBtn.classList.toggle('hidden', schedEmpTarget==='__general__' || !(e && e.schedule));
+  }
+}
+function switchSchedEmp(key){
+  schedEmpTarget = key;
+  renderSchedEmpTabs();
+  renderScheduleForm();
+}
+async function resetEmpSchedule(){
+  if(schedEmpTarget==='__general__') return;
+  const emps = normalizeEmployees();
+  const idx = emps.findIndex(e=>e.name===schedEmpTarget);
+  if(idx===-1) return;
+  emps[idx].schedule = null;
+  try{
+    await setDoc.set({ employees: emps }, { merge:true });
+    showToast('Horario restablecido al general');
+  }catch(e){ console.error(e); showToast('No se pudo restablecer'); }
 }
 function renderEmpAdminList(){
   const el = document.getElementById('emp-admin-list');
@@ -1378,6 +1460,7 @@ function renderEmpAdminList(){
 async function updateEmpField(index, field, value){
   const emps = normalizeEmployees();
   if(!emps[index]) return;
+  const oldName = emps[index].name;
   if(field==='name'){
     value = value.trim();
     if(!value){ renderEmpAdminList(); return; }
@@ -1385,6 +1468,7 @@ async function updateEmpField(index, field, value){
   emps[index][field] = value;
   try{
     await setDoc.set({ employees: emps }, { merge:true });
+    if(field==='name' && schedEmpTarget===oldName) schedEmpTarget = value;
     showToast('Empleados actualizados');
   }catch(e){ console.error(e); showToast('No se pudo actualizar'); }
 }
@@ -1414,7 +1498,7 @@ function renderScheduleForm(){
   const el = document.getElementById('schedule-form');
   if(!el) return;
   el.innerHTML = SCHED_DAY_ORDER.map(d=>{
-    const ranges = daySchedule(d);
+    const ranges = daySchedule(d, schedEmpTarget);
     const open = ranges.length>0;
     const r0 = ranges[0] || {open:'',close:''};
     const r1 = ranges[1] || {open:'',close:''};
@@ -1589,7 +1673,15 @@ async function saveSettings(){
     schedule[d] = ranges;
   });
   try{
-    await setDoc.set({ slot, schedule }, { merge:true });
+    if(schedEmpTarget==='__general__'){
+      await setDoc.set({ slot, schedule }, { merge:true });
+    } else {
+      const emps = normalizeEmployees();
+      const idx = emps.findIndex(e=>e.name===schedEmpTarget);
+      if(idx===-1){ showToast('No se encontró la empleada'); return; }
+      emps[idx].schedule = schedule;
+      await setDoc.set({ slot, employees: emps }, { merge:true });
+    }
     showToast('Horario guardado');
   }catch(e){ console.error(e); showToast('No se pudo guardar el horario'); }
 }

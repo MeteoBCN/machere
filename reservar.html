@@ -327,8 +327,28 @@ const DEFAULT_SCHEDULE = {
   5: [{open:'10:00',close:'14:00'},{open:'15:00',close:'21:00'}],
   6: [{open:'10:00',close:'14:00'},{open:'15:00',close:'21:00'}],
 };
-function daySchedule(dow){ return (settings.schedule && settings.schedule[dow]) || []; }
-function isDayClosed(dow){ return daySchedule(dow).length===0; }
+function employeeSchedule(name){
+  const e = normalizeEmployees().find(x=>x.name===name);
+  if(e && e.schedule) return e.schedule;
+  return settings.schedule || DEFAULT_SCHEDULE;
+}
+function daySchedule(dow, emp){
+  if(emp && emp!=='cualquiera'){
+    const sched = employeeSchedule(emp);
+    return (sched && sched[dow]) || [];
+  }
+  return (settings.schedule && settings.schedule[dow]) || [];
+}
+function isDayClosed(dow, emp){
+  if(emp && emp!=='cualquiera'){
+    return daySchedule(dow, emp).length===0;
+  }
+  const emps = empList();
+  if(emps.length){
+    return !emps.some(e=>daySchedule(dow, e).length>0);
+  }
+  return daySchedule(dow).length===0;
+}
 
 let bookingState = { serviceIds:[], date:null, time:null, employee:'cualquiera' };
 
@@ -483,7 +503,7 @@ function normalizeEmployees(){
   if(!Array.isArray(emps) || emps.length===0){
     emps = [{name:'Empleado 1',active:true},{name:'Empleado 2',active:true}];
   }
-  return emps.map(e=> typeof e==='string' ? {name:e,active:true} : {name:e.name,active:e.active!==false}).filter(e=>e.name);
+  return emps.map(e=> typeof e==='string' ? {name:e,active:true,schedule:null} : {name:e.name,active:e.active!==false,schedule:e.schedule||null}).filter(e=>e.name);
 }
 function empList(){
   const emps = normalizeEmployees().filter(e=>e.active).map(e=>e.name);
@@ -502,6 +522,7 @@ function selectEmployee(name){
   bookingState.employee = name;
   bookingState.time = null;
   renderEmpFilter();
+  renderDateStrip();
   renderSlots();
 }
 
@@ -514,7 +535,7 @@ function renderDateStrip(){
   for(let i=0;i<14;i++){
     const d = new Date(today); d.setDate(d.getDate()+i);
     const iso = fmtDate(d);
-    const closed = isDayClosed(d.getDay());
+    const closed = isDayClosed(d.getDay(), bookingState.employee);
     html += `<button class="date-chip ${bookingState.date===iso?'sel':''} ${closed?'closed':''}" onclick="selectDate('${iso}')">
       <div class="dow">${DOW[d.getDay()]}</div>
       <div class="num">${d.getDate()}</div>
@@ -548,7 +569,18 @@ function renderSlots(){
   const chosen = chosenServices();
   if(chosen.length===0 || !bookingState.date){ el.innerHTML=''; return; }
   const d = new Date(bookingState.date+'T00:00:00');
-  const ranges = daySchedule(d.getDay());
+  const dow = d.getDay();
+  const emps = empList();
+  const hasEmpChoice = bookingState.employee && bookingState.employee!=='cualquiera';
+  let ranges;
+  if(hasEmpChoice){
+    ranges = daySchedule(dow, bookingState.employee);
+  } else if(emps.length){
+    ranges = [];
+    emps.forEach(e=>{ ranges = ranges.concat(daySchedule(dow, e)); });
+  } else {
+    ranges = daySchedule(dow);
+  }
   const step = Number(settings.slot||30);
   const dur = chosen.reduce((a,s)=>a+Number(s.duracion||30),0);
   const now = new Date();
@@ -556,17 +588,19 @@ function renderSlots(){
   const nowMins = now.getHours()*60+now.getMinutes();
 
   const dayBookings = bookings.filter(b=>b.date===bookingState.date && b.status!=='cancelada');
-  const emps = empList();
 
   let html = '';
   let any = false;
+  const seen = new Set();
   ranges.forEach(r=>{
     const start = toMinutes(r.open);
     const end = toMinutes(r.close);
     for(let t=start; t+dur<=end; t+=step){
       const hhmm = toHHMM(t);
+      if(seen.has(hhmm)) continue;
+      seen.add(hhmm);
       let free;
-      if(bookingState.employee && bookingState.employee!=='cualquiera'){
+      if(hasEmpChoice){
         free = employeeFreeAt(bookingState.employee, t, dur, dayBookings);
       } else {
         free = emps.some(e=>employeeFreeAt(e, t, dur, dayBookings));
