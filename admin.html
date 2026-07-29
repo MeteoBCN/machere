@@ -156,8 +156,9 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
 .cp-head{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:16px;margin-bottom:4px;color:var(--dark)}
 .cp-line{font-size:12px;color:var(--dark)}
 .cp-line.muted{color:var(--muted);margin-top:2px}
-.hist-item{display:flex;justify-content:space-between;font-size:13px;padding:9px 0;border-bottom:1px solid var(--border)}
+.hist-item{display:flex;justify-content:space-between;font-size:13px;padding:9px 0;border-bottom:1px solid var(--border);transition:color .2s}
 .hist-item:last-child{border-bottom:none}
+.hist-item:hover{color:var(--gold2)}
 
 /* SERVICES ADMIN */
 .svc-row{display:grid;grid-template-columns:1.5fr 1.2fr 0.7fr 0.7fr 1fr auto;gap:12px;align-items:center;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:var(--ivory);margin-bottom:8px}
@@ -826,11 +827,16 @@ function openBookingDetail(bookingId){
   root.innerHTML = `
     <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
       <div class="modal-box">
-        <h3>${escapeHtml(b.clientName)} · ${b.time}</h3>
+        <h3>Corregir cita</h3>
+        <div class="field"><label>Nombre del cliente</label><input id="bd-nombre" value="${escapeHtml(b.clientName||'')}"></div>
+        <div class="field"><label>Teléfono</label><input id="bd-telefono" value="${escapeHtml(b.clientPhone||'')}"></div>
+        <div class="two-col">
+          <div class="field"><label>Fecha</label><input type="date" id="bd-fecha" value="${b.date||''}"></div>
+          <div class="field"><label>Hora</label><input type="time" id="bd-hora" value="${b.time||''}"></div>
+        </div>
         <div class="booking-detail-row"><span>Servicio</span><span>${escapeHtml(svcNames)}</span></div>
         <div class="booking-detail-row"><span>Duración</span><span>${b.duration} min</span></div>
         <div class="booking-detail-row"><span>Precio</span><span>${euros(b.price)}</span></div>
-        <div class="booking-detail-row"><span>Teléfono</span><span>${escapeHtml(b.clientPhone||'')}</span></div>
         ${b.notes ? `<div class="booking-detail-row"><span>Notas</span><span style="font-style:italic">"${escapeHtml(b.notes)}"</span></div>` : ''}
         <div class="booking-detail-row"><span>Estado</span><span class="status-badge status-${b.status}">${b.status}</span></div>
         <div class="booking-detail-row"><span>Cobro</span><span>${b.paid ? `<span class="pay-badge ${b.paymentMethod==='tarjeta'?'tarjeta':''}">${b.paymentMethod==='tarjeta'?'💳 Tarjeta':'💶 Efectivo'} · ${euros(b.paidAmount)}</span>` : `<span style="color:var(--muted);font-style:italic">Pendiente</span>`}</span></div>
@@ -841,6 +847,7 @@ function openBookingDetail(bookingId){
           </select>
         </div>
         <div class="row-btns" style="margin-top:18px">
+          <button class="btn btn-gold btn-sm" onclick="saveBookingCorrections('${b.id}')">💾 Guardar corrección</button>
           <button class="btn btn-ghost btn-sm" onclick="openAddServiceModal('${b.id}')">＋ Servicio</button>
           <button class="btn btn-ghost btn-sm" onclick="openCobroModal('${b.id}')">€ Cobrar</button>
           ${b.paid ? `<button class="btn btn-ghost btn-sm" onclick="sendReceiptWhatsapp('${b.id}')">📱 Recibo</button>` : ''}
@@ -865,6 +872,27 @@ async function changeBookingEmployee(id, employee){
     await bkCol.doc(id).update({ employee });
     showToast('Empleado reasignado');
   }catch(e){ console.error(e); showToast('No se pudo reasignar'); }
+}
+async function saveBookingCorrections(id){
+  const b = bookings.find(x=>x.id===id);
+  if(!b) return;
+  const clientName = document.getElementById('bd-nombre').value.trim();
+  const clientPhone = document.getElementById('bd-telefono').value.trim();
+  const date = document.getElementById('bd-fecha').value;
+  const time = document.getElementById('bd-hora').value;
+  if(!clientName || !clientPhone){ showToast('Indica nombre y teléfono del cliente'); return; }
+  if(!date || !time){ showToast('Indica fecha y hora de la cita'); return; }
+  try{
+    await bkCol.doc(id).update({ clientName, clientPhone, date, time });
+    if(b.clientId && (clientName!==b.clientName || clientPhone!==b.clientPhone)){
+      const alsoUpdateClient = confirm('¿Actualizar también estos datos en la ficha del cliente?');
+      if(alsoUpdateClient){
+        await cliCol.doc(b.clientId).update({ name:clientName, phone:clientPhone });
+      }
+    }
+    showToast('Cita corregida');
+    closeModal();
+  }catch(e){ console.error(e); showToast('No se pudo guardar la corrección'); }
 }
 /* ============ NUEVA CITA MANUAL (panel privado) ============ */
 let mbCatFilter = 'todas';
@@ -1212,7 +1240,7 @@ function renderClientDetail(id){
   const history = bookings.filter(b=>b.clientId===id).sort((a,b)=> (b.date+b.time).localeCompare(a.date+a.time));
   wrap.innerHTML = `
     <div class="card client-detail">
-      <h3 style="margin-bottom:16px">${escapeHtml(c.name)}</h3>
+      <div class="field"><label>Nombre</label><input value="${escapeHtml(c.name)}" onchange="updateClientField('${c.id}','name',this.value)"></div>
       <div class="two-col">
         <div>
           <div class="field"><label>Teléfono</label><input value="${escapeHtml(c.phone)}" onchange="updateClientField('${c.id}','phone',this.value)"></div>
@@ -1222,7 +1250,7 @@ function renderClientDetail(id){
         <div>
           <label>Historial de citas</label>
           ${history.length===0 ? '<p style="color:var(--muted);font-style:italic;font-size:13px">Sin citas todavía</p>' :
-            history.map(h=>`<div class="hist-item"><span>${h.date} · ${h.time} · ${escapeHtml(bookingServiceList(h).map(s=>s.name).join(' + '))} · ${euros(h.price)}${h.employee?' · '+escapeHtml(h.employee):''}</span><span class="status-badge status-${h.status}">${h.status}</span></div>`).join('')
+            history.map(h=>`<div class="hist-item" style="cursor:pointer" title="Corregir esta cita" onclick="openBookingDetail('${h.id}')"><span>${h.date} · ${h.time} · ${escapeHtml(bookingServiceList(h).map(s=>s.name).join(' + '))} · ${euros(h.price)}${h.employee?' · '+escapeHtml(h.employee):''}</span><span class="status-badge status-${h.status}">${h.status}</span></div>`).join('')
           }
         </div>
       </div>
