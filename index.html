@@ -282,9 +282,83 @@ footer{background:var(--dark);padding:80px 70px 44px}
     </h1>
     <p class="hero-body">Creemos que la belleza no se impone, se revela. Bienvenida a tu santuario.</p>
   </div>
-
 </section>
 
+<!-- IMÁGENES AMPLIABLES -->
+<div class="promo-box">
+  <img src="pweb1.jpg" alt="Promoción 1" onclick="abrirFoto(this.src)">
+  <img src="pweb2.jpg" alt="Promoción 2" onclick="abrirFoto(this.src)">
+</div>
+
+<!-- FONDO OSCURO Y FOTO GRANDE (OCULTO POR DEFECTO) -->
+<div id="visor-foto" onclick="cerrarFoto()">
+  <span class="cerrar-visor">&times;</span>
+  <img id="foto-ampliada" src="" alt="Vista ampliada">
+</div>
+
+<style>
+  /* Diseño de las dos imágenes en la página */
+  .promo-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 30px 15px;
+    flex-wrap: wrap;
+  }
+  .promo-box img {
+    width: 85%; /* Ocupa el 85% del ancho en móvil, dejando aire a ambos lados */
+    max-width: 380px; /* Tamaño máximo en ordenador */
+    height: auto;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+  }
+  .promo-box img:hover {
+    transform: scale(1.02);
+  }
+
+  /* Diseño de la ventana emergente con el fondo de la web debajo */
+  #visor-foto {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  #visor-foto img {
+    max-width: 90%;
+    max-height: 90vh;
+    border-radius: 8px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+  }
+  .cerrar-visor {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #ffffff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  function abrirFoto(ruta) {
+    document.getElementById('foto-ampliada').src = ruta;
+    document.getElementById('visor-foto').style.display = 'flex';
+  }
+  function cerrarFoto() {
+    document.getElementById('visor-foto').style.display = 'none';
+  }
+</script>
+  
 <!-- GALLERY -->
 <div class="gallery">
   <div class="gallery-cell">
