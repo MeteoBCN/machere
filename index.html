@@ -44,6 +44,10 @@ nav{position:sticky;top:0;left:0;right:0;z-index:200;padding:24px 70px;display:f
 .hero-title{font-family:'Playfair Display',serif;font-size:clamp(56px,6.5vw,88px);font-weight:300;line-height:1.05;color:var(--dark);margin-top:40px;margin-bottom:36px;opacity:0;animation:up .9s ease .5s forwards}
 .hero-title em{display:block;font-style:italic;color:var(--gold)}
 .hero-body{font-family:'Open Sans',serif;font-style:italic;font-size:16px;color:#1F1005;line-height:1.9;font-weight:300;max-width:380px;margin-bottom:56px;letter-spacing:.04em;opacity:0;animation:up .9s ease .7s forwards}
+.hero-titles{list-style:none;margin:-20px 0 0;padding:0;opacity:0;animation:up .9s ease .9s forwards}
+.hero-titles li{font-family:'Playfair Display',serif;font-size:clamp(22px,2.4vw,32px);font-weight:300;color:var(--dark);line-height:1.2;padding:16px 0;border-bottom:1px solid var(--border)}
+.hero-titles li:first-child{border-top:1px solid var(--border)}
+.hero-titles li::before{content:'—';color:var(--gold);margin-right:14px}
 .hero-btns{display:flex;gap:16px;opacity:0;animation:up .9s ease .9s forwards}
 .btn-primary{font-size:9px;letter-spacing:.26em;text-transform:uppercase;background:var(--gold);color:var(--cream);padding:15px 38px;text-decoration:none;font-weight:400;transition:all .35s}
 .btn-primary:hover{background:var(--gold2)}
@@ -300,6 +304,13 @@ footer{background:var(--dark);padding:80px 70px 44px}
       <em>Peluquería y Estética integral.</em>
     </h1>
     <p class="hero-body">Creemos que la belleza no se impone, se revela. Bienvenida a tu santuario.</p>
+    <ul class="hero-titles">
+      <li>Alisado Brasileño</li>
+      <li>Colorimetría</li>
+      <li>Cortes y peinados</li>
+      <li>Tratamientos faciales y corporales</li>
+      <li>Depilación láser y cera</li>
+    </ul>
   </div>
 </section>
 
