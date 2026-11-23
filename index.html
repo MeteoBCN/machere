@@ -51,6 +51,15 @@ nav{position:sticky;top:0;left:0;right:0;z-index:200;padding:24px 70px;display:f
 .btn-secondary::after{content:'';width:40px;height:1px;background:var(--dark);transition:width .35s}
 .btn-secondary:hover{gap:22px;color:var(--gold)}
 .btn-secondary:hover::after{width:52px;background:var(--gold)}
+/* CARRUSEL */
+.carousel{position:relative;width:100%;overflow:hidden;background:var(--dark);pointer-events:none;user-select:none}
+.carousel-track{display:flex;transition:transform .9s ease;will-change:transform}
+.carousel-slide{flex:0 0 100%;width:100%;aspect-ratio:16/7;overflow:hidden}
+.carousel-slide img{width:100%;height:100%;object-fit:cover;display:block;user-select:none;-webkit-user-drag:none}
+@media(max-width:720px){
+  .carousel-slide{aspect-ratio:4/3}
+}
+
 /* ABOUT */
 .about{padding:150px 70px;display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center}
 .section-tag{font-size:9px;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);font-weight:300;margin-bottom:28px}
@@ -273,6 +282,16 @@ footer{background:var(--dark);padding:80px 70px 44px}
   <a href="https://wa.me/34641455553?text=Hola%2C%20me%20gustar%C3%ADa%20pedir%20informaci%C3%B3n%20sobre%20vuestros%20servicios" target="_blank" rel="noopener noreferrer" class="nav-cta">Reservar cita</a>
 </nav>
 
+<!-- CARRUSEL -->
+<section class="carousel" id="carousel" aria-label="Carrusel de imágenes">
+  <div class="carousel-track">
+    <div class="carousel-slide"><img src="car1.jpg" alt="Imagen 1" draggable="false"></div>
+    <div class="carousel-slide"><img src="car2.jpg" alt="Imagen 2" draggable="false"></div>
+    <div class="carousel-slide"><img src="car3.jpg" alt="Imagen 3" draggable="false"></div>
+    <div class="carousel-slide" aria-hidden="true"><img src="car1.jpg" alt="" draggable="false"></div>
+  </div>
+</section>
+
 <!-- HERO -->
 <section class="hero">
   <div class="hero-left">
@@ -430,6 +449,27 @@ footer{background:var(--dark);padding:80px 70px 44px}
 </a>
 
 <script>
+// Carrusel (automático, de derecha a izquierda, en bucle)
+(function(){
+  const c=document.getElementById('carousel');
+  if(!c)return;
+  const track=c.querySelector('.carousel-track');
+  const total=track.children.length-1; // la última es copia de la primera
+  let idx=0;
+  setInterval(()=>{
+    idx++;
+    track.style.transition='transform .9s ease';
+    track.style.transform='translateX(-'+(idx*100)+'%)';
+    if(idx===total){
+      // al llegar a la copia, vuelve al inicio sin animación
+      setTimeout(()=>{
+        track.style.transition='none';
+        track.style.transform='translateX(0)';
+        idx=0;
+      },950);
+    }
+  },4000);
+})();
 // Scroll reveal
 const obs=new IntersectionObserver(entries=>{
   entries.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('in'),i*90);obs.unobserve(e.target)}});
